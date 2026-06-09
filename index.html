@@ -1,0 +1,833 @@
+<!--
+  FIFA World Cup 2026 – Internal tipping game dashboard
+
+  This static web page fetches live match results from https://worldcup26.ir
+  and compares them with locally stored predictions.  Points are awarded for
+  correctly picking the outcome (win/draw/loss) and for predicting the exact
+  score.  The page builds a simple leaderboard showing the total points and
+  number of exact hits per player.  A refresh button triggers the API call
+  and recalculates scores on demand.
+
+  To deploy on GitHub Pages simply push this file to a repository’s
+  `gh-pages` branch or configure Pages to serve from the root of the branch
+  containing this file.
+
+  Predictions data
+  -----------------
+  The `players` array below holds example predictions in a simple JSON
+  structure.  Each player has a `name` and a `predictions` object keyed by
+  the match identifier provided by the API.  Each prediction contains
+  `home` and `away` integers representing the predicted goals.  Replace
+  this mock data with the real data exported from your Excel file.  A
+  helper script using Python/pandas to convert the Excel sheet into this
+  structure is included at the bottom of this file.
+
+  Scoring
+  -------
+  • basePoints – points awarded for picking the correct outcome (1, 0 or 2).
+    This implementation uses 1 point, but you can adjust the constant at
+    the top of the script to match your rules.
+  • bonusPoints – additional points for predicting the exact score line.
+    This implementation uses 3 points.  Adjust the constant as required.
+
+  Note: because the API is public and does not require authentication, the
+  page can make requests directly from the browser.  If the API changes
+  or becomes unavailable you can adapt the `fetchGames()` function to use
+  another data source.
+-->
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tipovací soutěž – MS 2026</title>
+  <style>
+    /* Simple responsive layout */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+    header {
+      background: #005a9c;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .stat-box {
+      flex: 1 1 200px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    th {
+      background: #e9ecef;
+    }
+
+    /* Table used in statistics section */
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    .stats-table th, .stats-table td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    .stats-table th {
+      background: #f2f2f2;
+    }
+    #refresh {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #005a9c;
+      border-radius: 4px;
+      background: #005a9c;
+      color: #fff;
+      cursor: pointer;
+    }
+    #refresh:disabled {
+      background: #ccc;
+      border-color: #ccc;
+      cursor: not-allowed;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #666;
+      padding: 1rem;
+    }
+    @media (max-width: 600px) {
+      .stat-box {
+        flex: 1 1 100%;
+      }
+      table {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Interní tipovací soutěž – MS 2026</h1>
+    <p>Aktuální pořadí na základě živých výsledků</p>
+  </header>
+  <main>
+    <div class="stats">
+      <div class="stat-box">
+        <strong>Odehrané zápasy</strong><br />
+        <span id="gamesPlayed">0</span> / <span id="gamesTotal">0</span>
+      </div>
+      <div class="stat-box">
+        <strong>Poslední aktualizace</strong><br />
+        <span id="lastUpdated">–</span>
+      </div>
+      <div class="stat-box">
+        <button id="refresh">Aktualizovat</button>
+      </div>
+
+      <!-- Button to toggle display of individual tips -->
+      <div class="stat-box">
+        <button id="showTips">Zobrazit tipy</button>
+      </div>
+
+      <!-- Button to toggle display of statistics -->
+      <div class="stat-box">
+        <button id="showStats">Statistiky</button>
+      </div>
+    </div>
+    <table id="leaderboard">
+      <thead>
+        <tr>
+          <th>Pořadí</th>
+          <th>Jméno</th>
+          <th>Body</th>
+          <th>Přesné tipy</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Statistics section (hidden by default).  Displays interesting insights
+         such as distribution of champion predictions and longest correct streaks. -->
+    <section id="statsSection" style="display:none;">
+      <h2>Statistiky</h2>
+      <div id="championStatsContainer">
+        <h3>Tipy na vítěze MS</h3>
+        <div id="championStats"></div>
+      </div>
+      <div id="streakStatsContainer" style="margin-top:1rem;">
+        <h3>Nejdelší série správných tipů</h3>
+        <div id="streakStats"></div>
+      </div>
+    </section>
+    <!-- Přehled všech tipů podle zápasu -->
+    <h2>Přehled tipů podle zápasu</h2>
+    <div style="overflow-x:auto;">
+      <table id="predictionsTable">
+        <thead>
+          <tr id="predHeader"></tr>
+        </thead>
+        <tbody id="predBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Section for individual tips comparison -->
+    <section id="tipsSection" style="display:none; margin-top:1rem;">
+      <h2>Individuální tipy</h2>
+      <label for="playerSelect1">Hráč 1:</label>
+      <select id="playerSelect1"></select>
+      <label for="playerSelect2">Hráč 2:</label>
+      <select id="playerSelect2"></select>
+      <button id="compareButton">Zobrazit</button>
+      <button id="showAllPlayers">Zobrazit všechny</button>
+      <div style="overflow-x:auto;">
+        <table id="tipsTable">
+          <thead>
+            <tr id="tipsHeader"></tr>
+          </thead>
+          <tbody id="tipsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <p>Data o zápasech čerpána z API <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a>.</p>
+  </footer>
+
+  
+    
+<script>
+// ----- Configuration -----
+const basePoints  = 1; // body za správného vítěze/remízu
+const bonusPoints = 3; // bonusové body za přesný výsledek
+
+// Bonus for predicting the overall World Cup champion.  When the actual
+// champion is known, update the `actualChampion` constant below.
+const winnerBonusPoints = 10;
+// Set `actualChampion` to the name of the team that wins the tournament
+// once the champion is known.  While it is `null` no bonus is awarded.
+let actualChampion = null;
+
+// Mapping of each player to their predicted tournament winner.  This list
+// mirrors the handwritten predictions shown in the spreadsheet.  The keys
+// must match the exact `name` values from the predictions JSON.  Values
+// should use a consistent naming scheme (English names) so that when
+// `actualChampion` is set it can be compared directly.
+const championPredictions = {
+  "Pavel Machovsky":    "Argentina",
+  "David Machovsly":    "Spain",
+  "Vitek Slunecko":     "Netherlands",
+  "Olda Cervinka":      "France",
+  "Karel Klima":        "England",
+  "Darek Nestak":       "France",
+  "Vit Vevericik":      "Spain",
+  "Jan Cejchan":        "England",
+  "Jan Satra":          "England",
+  "Marek Machovsky":    "Portugal",
+  "Honza Horáček":      "Spain",
+  "Stepan Ruzicka":     "Brazil",
+  "Kuba Kriz":          "Argentina",
+  "Starky":             "Spain",
+  "Matus Lazovsky":     "Argentina",
+  "Kuba Neužil":        "Netherlands",
+  "David Filgas":       "France",
+  "Standa Jambor":      "Spain",
+  "Jachym Jakimeczko":  "Portugal",
+  "Filip Podlipny":     "Portugal",
+  "Standa Silhavy":     "France",
+  "David Nestak":       "Spain",
+  "Honza Novak":        "France",
+  "Jirka Nyvlt":        "Brazil",
+  "Hardy Pavlicek":     "Spain",
+  "Matej Chalupka":     "Brazil",
+  "Vašek Stach":        "Brazil"
+};
+
+// Players data loaded from external JSON
+let players = [];
+// Cache of all games from API (used for tips comparison)
+let gamesCache = [];
+
+// Assign the predicted champion to each loaded player based on the
+// championPredictions mapping.  This should be called after players
+// are loaded from the JSON file.
+function assignChampionPredictions() {
+  players.forEach(p => {
+    p.predictedChampion = championPredictions[p.name] || null;
+  });
+}
+
+// Compute statistics for predicted champions.  Returns an object mapping
+// each predicted team to an object with count and the list of players
+// who selected that team.  Only teams that have at least one prediction
+// are included.
+function computeChampionStats() {
+  const stats = {};
+  players.forEach(p => {
+    const champ = p.predictedChampion;
+    if (!champ) return;
+    if (!stats[champ]) {
+      stats[champ] = { count: 0, players: [] };
+    }
+    stats[champ].count++;
+    stats[champ].players.push(p.name);
+  });
+  return stats;
+}
+
+// Render the distribution of predicted winners into the championStats
+// container.  Produces a table with team, count and a comma-separated
+// list of player names.  The rows are sorted by count descending.
+function renderChampionStats() {
+  const container = document.getElementById('championStats');
+  if (!container) return;
+  const stats = computeChampionStats();
+  const table = document.createElement('table');
+  table.className = 'stats-table';
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th>Tipovaný vítěz</th><th>Počet tipů</th><th>Hráči</th></tr>';
+  table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  Object.keys(stats).sort((a, b) => stats[b].count - stats[a].count).forEach(team => {
+    const { count, players: list } = stats[team];
+    const tr = document.createElement('tr');
+    const playersStr = list.join(', ');
+    tr.innerHTML = `<td>${team}</td><td>${count}</td><td>${playersStr}</td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+// Compute the longest streak of consecutive correct outcomes for each player.
+// A correct outcome means predicting the match result (win/draw/loss) correctly.
+// The function expects a list of finished games (each with id, home_score,
+// away_score) sorted chronologically.  Returns an array of objects
+// { name, streak } sorted by streak descending.
+function computeLongestStreaks(finishedGames) {
+  // Sort finished games by ID to ensure chronological order (IDs correspond
+  // to the order in the Excel sheet).  If API IDs do not reflect order
+  // chronologically, you may sort by kickoff time instead.
+  const sortedGames = finishedGames.slice().sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10));
+  const results = {};
+  sortedGames.forEach(g => {
+    results[g.id] = {
+      outcome: outcome(parseInt(g.home_score, 10), parseInt(g.away_score, 10))
+    };
+  });
+  const streaks = players.map(p => {
+    let maxStreak   = 0;
+    let current     = 0;
+    sortedGames.forEach(g => {
+      const pred   = p.predictions[g.id];
+      if (!pred) {
+        // No prediction resets the streak
+        current = 0;
+        return;
+      }
+      const predOutcome = outcome(pred.home, pred.away);
+      const actual      = results[g.id].outcome;
+      if (predOutcome === actual) {
+        current++;
+        if (current > maxStreak) maxStreak = current;
+      } else {
+        current = 0;
+      }
+    });
+    return { name: p.name, streak: maxStreak };
+  });
+  streaks.sort((a, b) => b.streak - a.streak);
+  return streaks;
+}
+
+// Render table of longest streaks into streakStats container.  Shows
+// player names and their maximum consecutive correct predictions.  Only
+// computed when there are finished games; if none, the container is
+// cleared and a message is displayed.
+function renderStreakStats(finishedGames) {
+  const container = document.getElementById('streakStats');
+  if (!container) return;
+  if (!finishedGames || finishedGames.length === 0) {
+    container.innerHTML = '<p>Zatím nejsou odehrané žádné zápasy.</p>';
+    return;
+  }
+  const streaks = computeLongestStreaks(finishedGames);
+  const table = document.createElement('table');
+  table.className = 'stats-table';
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th>Hráč</th><th>Nejdelší série správných tipů</th></tr>';
+  table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  streaks.forEach(({ name, streak }) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${name}</td><td>${streak}</td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+// Load match schedule from local JSON file (games.json)
+async function loadGames() {
+  try {
+    const resp = await fetch('games.json');
+    const data = await resp.json();
+    gamesCache = data.games || data;
+  } catch (err) {
+    console.warn('Nelze načíst games.json:', err);
+  }
+}
+
+// Load players predictions from JSON file
+async function loadPlayers() {
+  try {
+    const resp = await fetch('players_predictions_mapped.json');
+    players = await resp.json();
+    // After loading players attach their predicted champion
+    assignChampionPredictions();
+  } catch (err) {
+    console.error('Chyba při načítání tipů:', err);
+    alert('Tipy se nepodařilo načíst. Zkontrolujte, že soubor players_predictions_mapped.json je dostupný.');
+  }
+}
+
+// Fetch all games from the API and compute scores
+async function fetchGames() {
+  const refreshBtn = document.getElementById('refresh');
+  refreshBtn.disabled = true;
+  try {
+    const response = await fetch('https://worldcup26.ir/get/games');
+    const data     = await response.json();
+    const games    = data.games;
+    gamesCache = games;
+    const finishedGames = games.filter(g => g.finished === 'TRUE');
+    updateStats(finishedGames, games.length);
+    calculateScores(finishedGames);
+    renderPredictionsTable(finishedGames);
+    // Update statistics that depend on finished games (e.g. longest streaks)
+    renderStreakStats(finishedGames);
+  } catch (error) {
+    console.error('Chyba při načítání dat:', error);
+    updateStats([], 0);
+    alert('Chyba při načítání dat. Zkuste to prosím později.');
+    // Clear streak statistics when no games loaded
+    renderStreakStats([]);
+  } finally {
+    refreshBtn.disabled = false;
+  }
+}
+
+// Update the statistics boxes
+function updateStats(finishedGames, total) {
+  let totalGroup = 0;
+  if (Array.isArray(gamesCache) && gamesCache.length) {
+    totalGroup = gamesCache.filter(g => g.type === 'group').length;
+  }
+  const totalMatches = totalGroup || total;
+  document.getElementById('gamesPlayed').textContent = finishedGames.length;
+  document.getElementById('gamesTotal').textContent  = totalMatches;
+  const now = new Date();
+  document.getElementById('lastUpdated').textContent = now.toLocaleString('cs-CZ');
+}
+
+// Helper to format kickoff datetime into Czech string
+function formatKickoff(local_date) {
+  if (!local_date) return '';
+  const parts = local_date.split(' ');
+  const datePart = parts[0];
+  const timePart = parts[1];
+  const md = datePart.split('/');
+  const month = parseInt(md[0], 10) - 1;
+  const day   = parseInt(md[1], 10);
+  const year  = parseInt(md[2], 10);
+  const [hour, minute] = timePart.split(':').map(x => parseInt(x, 10));
+  const dateObj = new Date(year, month, day, hour, minute);
+  const weekday = dateObj.toLocaleDateString('cs-CZ', { weekday: 'long' });
+  const dayMonth = dateObj.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }).replace(/\s+/g, '');
+  const timeStr  = dateObj.toLocaleTimeString('cs-CZ', { hour:'2-digit', minute:'2-digit', hour12: false });
+  return `${weekday} ${dayMonth} ${timeStr}`;
+}
+
+// Compute scores for each player and update leaderboard
+function calculateScores(finishedGames) {
+  const results = {};
+  finishedGames.forEach(g => {
+    results[g.id] = {
+      home: parseInt(g.home_score, 10),
+      away: parseInt(g.away_score, 10)
+    };
+  });
+  const leaderboard = players.map(player => {
+    let points     = 0;
+    let exactCount = 0;
+    Object.keys(results).forEach(id => {
+      const actual = results[id];
+      const pred   = player.predictions[id];
+      if (!pred) return;
+      const actualOutcome = outcome(actual.home, actual.away);
+      const predOutcome   = outcome(pred.home, pred.away);
+      if (predOutcome == actualOutcome) {
+        points += basePoints;
+      }
+      if (pred.home === actual.home && pred.away === actual.away) {
+        points += bonusPoints;
+        exactCount++;
+      }
+    });
+    // Add bonus points for correctly predicting the tournament winner
+    let champBonus = 0;
+    if (actualChampion && player.predictedChampion && player.predictedChampion === actualChampion) {
+      champBonus = winnerBonusPoints;
+    }
+    return {
+      name: player.name,
+      points: points + champBonus,
+      exactCount,
+      championBonus: champBonus,
+      predictedChampion: player.predictedChampion
+    };
+  });
+  leaderboard.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    return b.exactCount - a.exactCount;
+  });
+  renderLeaderboard(leaderboard);
+}
+
+// Determine match outcome: '1' home win, '0' draw, '2' away win
+function outcome(home, away) {
+  if (home > away) return '1';
+  if (home < away) return '2';
+  return '0';
+}
+
+// Render leaderboard table
+function renderLeaderboard(data) {
+  const tbody = document.querySelector('#leaderboard tbody');
+  tbody.innerHTML = '';
+  data.forEach((player, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${index + 1}</td><td>${player.name}</td><td>${player.points}</td><td>${player.exactCount}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Render predictions table: finished games vs predictions for all players
+function renderPredictionsTable(finishedGames) {
+  const headerRow = document.getElementById('predHeader');
+  const body      = document.getElementById('predBody');
+  headerRow.innerHTML = '';
+  body.innerHTML      = '';
+  // header: match, result, players
+  const thMatch = document.createElement('th');
+  thMatch.textContent = 'Zápas';
+  headerRow.appendChild(thMatch);
+  const thRes = document.createElement('th');
+  thRes.textContent = 'Výsledek';
+  headerRow.appendChild(thRes);
+  players.forEach(player => {
+    const th = document.createElement('th');
+    th.textContent = player.name;
+    headerRow.appendChild(th);
+  });
+  finishedGames.forEach(game => {
+    const tr = document.createElement('tr');
+    const homeName = game.home_team_name_en || game.home_team_name || game.home;
+    const awayName = game.away_team_name_en || game.away_team_name || game.away;
+    const tdMatch = document.createElement('td');
+    tdMatch.textContent = `${homeName} vs ${awayName}`;
+    tr.appendChild(tdMatch);
+    const tdRes = document.createElement('td');
+    tdRes.textContent = `${game.home_score}:${game.away_score}`;
+    tr.appendChild(tdRes);
+    players.forEach(player => {
+      const td = document.createElement('td');
+      const pred = player.predictions[game.id];
+      if (!pred) {
+        td.textContent = '-';
+        tr.appendChild(td);
+        return;
+      }
+      td.textContent = `${pred.home}:${pred.away}`;
+      const actualOutcome = outcome(parseInt(game.home_score, 10), parseInt(game.away_score, 10));
+      const predOutcome   = outcome(pred.home, pred.away);
+      if (pred.home === parseInt(game.home_score, 10) && pred.away === parseInt(game.away_score, 10)) {
+        td.style.backgroundColor = '#d4edda';
+      } else if (predOutcome == actualOutcome) {
+        td.style.backgroundColor = '#fff3cd';
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+// Populate player select dropdowns with loaded players
+function populatePlayerSelects() {
+  const sel1 = document.getElementById('playerSelect1');
+  const sel2 = document.getElementById('playerSelect2');
+  sel1.innerHTML = '';
+  sel2.innerHTML = '';
+  const placeholder1 = document.createElement('option');
+  placeholder1.value = '';
+  placeholder1.textContent = 'Vyberte hráče…';
+  const placeholder2 = placeholder1.cloneNode(true);
+  sel1.appendChild(placeholder1);
+  sel2.appendChild(placeholder2);
+  players.forEach(p => {
+    const opt1 = document.createElement('option');
+    opt1.value = p.name;
+    opt1.textContent = p.name;
+    sel1.appendChild(opt1);
+    const opt2 = opt1.cloneNode(true);
+    sel2.appendChild(opt2);
+  });
+}
+
+// Render individual tips comparison for selected players
+function renderTipsComparison(p1Name, p2Name) {
+  const headerRow = document.getElementById('tipsHeader');
+  const body      = document.getElementById('tipsBody');
+  headerRow.innerHTML = '';
+  body.innerHTML      = '';
+  if (!p1Name) return;
+  const p1 = players.find(p => p.name === p1Name);
+  const p2 = p2Name ? players.find(p => p.name === p2Name) : null;
+  // Build header: match, result/kickoff, player1, (player2)
+  const thMatch = document.createElement('th');
+  thMatch.textContent = 'Zápas';
+  headerRow.appendChild(thMatch);
+  const thRes = document.createElement('th');
+  thRes.textContent = 'Výsledek / výkop';
+  headerRow.appendChild(thRes);
+  const th1 = document.createElement('th');
+  th1.textContent = p1Name;
+  headerRow.appendChild(th1);
+  if (p2) {
+    const th2 = document.createElement('th');
+    th2.textContent = p2Name;
+    headerRow.appendChild(th2);
+  }
+  const groupGames = gamesCache.filter(g => g.type === 'group');
+  groupGames.forEach(game => {
+    const tr = document.createElement('tr');
+    const homeName = game.home_team_name_en || game.home_team_name || game.home;
+    const awayName = game.away_team_name_en || game.away_team_name || game.away;
+    const tdMatch = document.createElement('td');
+    tdMatch.textContent = `${homeName} vs ${awayName}`;
+    tr.appendChild(tdMatch);
+    const tdRes = document.createElement('td');
+    const isFinished = game.finished === 'TRUE';
+    if (isFinished) {
+      tdRes.textContent = `${game.home_score}:${game.away_score}`;
+    } else {
+      tdRes.textContent = formatKickoff(game.local_date);
+    }
+    tr.appendChild(tdRes);
+    function createCell(player) {
+      const td = document.createElement('td');
+      const pred = player && player.predictions[game.id];
+      if (!pred) {
+        td.textContent = '-';
+        return td;
+      }
+      td.textContent = `${pred.home}:${pred.away}`;
+      if (isFinished) {
+        const actualOutcome = outcome(parseInt(game.home_score, 10), parseInt(game.away_score, 10));
+        const predOutcome   = outcome(pred.home, pred.away);
+        if (pred.home === parseInt(game.home_score, 10) && pred.away === parseInt(game.away_score, 10)) {
+          td.style.backgroundColor = '#d4edda';
+        } else if (predOutcome == actualOutcome) {
+          td.style.backgroundColor = '#fff3cd';
+        }
+      } else {
+        td.style.backgroundColor = '#f2f2f2';
+      }
+      return td;
+    }
+    tr.appendChild(createCell(p1));
+    if (p2) tr.appendChild(createCell(p2));
+    body.appendChild(tr);
+  });
+}
+
+// Render tips for all players across all group matches
+function renderAllTips() {
+  const headerRow = document.getElementById('tipsHeader');
+  const body      = document.getElementById('tipsBody');
+  headerRow.innerHTML = '';
+  body.innerHTML      = '';
+  const thMatch = document.createElement('th');
+  thMatch.textContent = 'Zápas';
+  headerRow.appendChild(thMatch);
+  const thRes = document.createElement('th');
+  thRes.textContent = 'Výsledek / výkop';
+  headerRow.appendChild(thRes);
+  players.forEach(player => {
+    const th = document.createElement('th');
+    th.textContent = player.name;
+    headerRow.appendChild(th);
+  });
+  const groupGames = gamesCache.filter(g => g.type === 'group');
+  groupGames.forEach(game => {
+    const tr = document.createElement('tr');
+    const homeName = game.home_team_name_en || game.home_team_name || game.home;
+    const awayName = game.away_team_name_en || game.away_team_name || game.away;
+    const tdMatch = document.createElement('td');
+    tdMatch.textContent = `${homeName} vs ${awayName}`;
+    tr.appendChild(tdMatch);
+    const tdRes = document.createElement('td');
+    const isFinished = game.finished === 'TRUE';
+    if (isFinished) {
+      tdRes.textContent = `${game.home_score}:${game.away_score}`;
+    } else {
+      tdRes.textContent = formatKickoff(game.local_date);
+    }
+    tr.appendChild(tdRes);
+    players.forEach(player => {
+      const td = document.createElement('td');
+      const pred = player.predictions[game.id];
+      if (!pred) {
+        td.textContent = '-';
+        tr.appendChild(td);
+        return;
+      }
+      td.textContent = `${pred.home}:${pred.away}`;
+      if (isFinished) {
+        const actualOutcome = outcome(parseInt(game.home_score, 10), parseInt(game.away_score, 10));
+        const predOutcome   = outcome(pred.home, pred.away);
+        if (pred.home === parseInt(game.home_score, 10) && pred.away === parseInt(game.away_score, 10)) {
+          td.style.backgroundColor = '#d4edda';
+        } else if (predOutcome == actualOutcome) {
+          td.style.backgroundColor = '#fff3cd';
+        }
+      } else {
+        td.style.backgroundColor = '#f2f2f2';
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+// Event listeners
+document.getElementById('refresh').addEventListener('click', async () => {
+  await fetchGames();
+});
+document.getElementById('showTips').addEventListener('click', () => {
+  const sec = document.getElementById('tipsSection');
+  if (!sec) return;
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('compareButton').addEventListener('click', () => {
+  const p1 = document.getElementById('playerSelect1').value;
+  const p2 = document.getElementById('playerSelect2').value;
+  renderTipsComparison(p1, p2 || null);
+});
+document.getElementById('showAllPlayers').addEventListener('click', () => {
+  renderAllTips();
+});
+
+// Toggle display of statistics section
+document.getElementById('showStats').addEventListener('click', () => {
+  const sec = document.getElementById('statsSection');
+  if (!sec) return;
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+});
+
+async function init() {
+  await loadPlayers();
+  // After loading players assign predicted champions and compute stats
+  renderChampionStats();
+  await loadGames();
+  populatePlayerSelects();
+  await fetchGames();
+}
+init();
+</script>
+
+
+
+<!--
+  ---------------------------------------------------------------------------
+  Helper script to convert Excel predictions to JSON
+  ---------------------------------------------------------------------------
+  Use the following Python snippet (requires pandas) to convert the provided
+  Excel sheet into the `players` array used above.  Adjust column indices and
+  point assignment logic as necessary based on your actual file structure.  Run
+  this script in a Python environment (e.g. Jupyter Notebook) and copy the
+  printed JSON into the `players` constant.
+
+  import pandas as pd
+  import json
+
+  # Read the Excel file
+  df = pd.read_excel('TOTAL_Tipovačka_MS_Vstupy - FINAL.xlsx', header=None)
+
+  # The third row (index 2) contains player names at every 5 columns starting from
+  # column 5 (0-based).  Adjust offsets based on your file.
+  name_row  = 2
+  start_col = 5
+  stride    = 5
+
+  players = []
+  game_ids = []
+
+  # Extract match IDs from the second column (ID column)
+  for i in range(4, len(df)):
+      match_id = i - 3  # assign sequential IDs starting from 1
+      game_ids.append(str(match_id))
+
+  # Extract player names and their predictions
+  col = start_col
+  while col < df.shape[1]:
+      name = df.iloc[name_row, col]
+      # Skip empty columns
+      if pd.isna(name):
+          col += stride
+          continue
+      predictions = {}
+      for idx, match_id in enumerate(game_ids):
+          # Predicted result in the format 'X:Y' is two columns after the bet column
+          pred_cell = df.iloc[4 + idx, col + 1]
+          if isinstance(pred_cell, str) and ':' in pred_cell:
+              home, away = map(int, pred_cell.split(':'))
+              predictions[match_id] = { 'home': home, 'away': away }
+      players.append({ 'name': name, 'predictions': predictions })
+      col += stride
+
+  print(json.dumps(players, ensure_ascii=False, indent=2))
+
+  ---------------------------------------------------------------------------
+-->
+</body>
+</html>
