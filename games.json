@@ -21,9 +21,9 @@
       "awayTeam": "Czech Republic",
       "kickoff": "2026-06-11 20:00",
       "stadiumId": "2",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
       "id": "3",
