@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Tipovačka MS 2026</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════ */
+:root {
+  --gd:  #0a4a2a;
+  --gm:  #1a7a42;
+  --gl:  #e8f5ee;
+  --gold:#f4b942; --silver:#9eaab5; --bronze:#c47c3e;
+  --bg:#f4f6f5; --sur:#ffffff; --brd:#e0e6e2;
+  --txt:#111c16; --mut:#607068;
+  --rsm:6px; --rmd:10px; --rlg:16px;
+  --s1:0 1px 3px rgba(0,0,0,.08);
+  --s2:0 4px 16px rgba(0,0,0,.10);
+  /* Sticky column widths – single source of truth */
+  --col1-w: 170px;
+  --col2-w: 100px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+/* ═══════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════ */
+.hdr{
+  background:var(--gd);color:#fff;
+  padding:.85rem 1.25rem;
+  display:flex;align-items:center;gap:.85rem;
+}
+.hdr img{height:48px;width:auto;flex-shrink:0}
+.hdr h1{font-size:1.15rem;font-weight:700;line-height:1.25}
+.hdr p{font-size:.78rem;opacity:.7;margin-top:2px}
+
+/* ═══════════════════════════════════════════════════════
+   STATUS BAR
+═══════════════════════════════════════════════════════ */
+.sbar{
+  background:var(--gm);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:.4rem;
+  padding:.45rem 1.25rem;font-size:.8rem;
+}
+.si{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════════════════
+   TAB NAVIGATION  – desktop: horizontal scroll bar
+═══════════════════════════════════════════════════════ */
+.tnav{
+  background:var(--sur);
+  border-bottom:2px solid var(--brd);
+  display:flex;overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.tnav::-webkit-scrollbar{display:none}
+.tbtn{
+  background:none;border:none;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+  padding:.8rem 1.25rem;
+  font-size:.88rem;font-weight:500;color:var(--mut);
+  cursor:pointer;white-space:nowrap;
+  transition:color .15s,border-color .15s;
+  display:flex;align-items:center;gap:.35rem;
+  /* touch-friendly minimum */
+  min-height:44px;
+}
+.tbtn:hover{color:var(--gd)}
+.tbtn.active{color:var(--gd);border-bottom-color:var(--gd);background:var(--gl)}
+
+/* ═══════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════ */
+.wrap{max-width:1040px;margin:0 auto;padding:1.4rem 1rem}
+.tpanel{display:none}.tpanel.active{display:block}
+.stitle{font-size:1.05rem;font-weight:700;color:var(--gd);margin-bottom:1rem}
+
+/* ═══════════════════════════════════════════════════════
+   PODIUM  – desktop: side-by-side (2nd | 1st | 3rd)
+═══════════════════════════════════════════════════════ */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:.75rem;margin-bottom:1.75rem}
+.pc{
+  background:var(--sur);border-radius:var(--rlg);box-shadow:var(--s2);
+  padding:1.1rem .9rem .9rem;text-align:center;
+  flex:1;max-width:240px;
+  border-top:4px solid var(--brd);
+}
+.pc.r1{border-top-color:var(--gold);transform:translateY(-12px)}
+.pc.r2{border-top-color:var(--silver)}
+.pc.r3{border-top-color:var(--bronze)}
+.pm{font-size:1.8rem;line-height:1;margin-bottom:.35rem}
+.pn{font-weight:700;font-size:.95rem;margin-bottom:.4rem;word-break:break-word;hyphens:auto}
+.pp{font-size:1.9rem;font-weight:800;color:var(--gd);line-height:1}
+.ppl{font-size:.7rem;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.pe{margin-top:.5rem;font-size:.77rem;color:var(--mut);background:var(--gl);border-radius:20px;padding:2px 9px;display:inline-block}
+
+/* ═══════════════════════════════════════════════════════
+   LEADERBOARD TABLE (rank 4+)
+═══════════════════════════════════════════════════════ */
+.lbt{width:100%;border-collapse:collapse;background:var(--sur);border-radius:var(--rmd);overflow:hidden;box-shadow:var(--s1)}
+.lbt thead th{background:var(--gd);color:#fff;font-weight:600;font-size:.77rem;text-transform:uppercase;letter-spacing:.04em;padding:.6rem .9rem;text-align:left}
+.lbt thead th:last-child,.lbt tbody td:last-child{text-align:right;padding-right:1rem}
+.lbt tbody tr{border-bottom:1px solid var(--brd)}
+.lbt tbody tr:last-child{border-bottom:none}
+.lbt tbody tr:hover{background:var(--gl)}
+.lbt tbody td{padding:.6rem .9rem;font-size:.88rem}
+.lbr{font-weight:700;color:var(--mut);width:2.5rem}
+.lbn{font-weight:500}
+.lbp{font-weight:700;font-size:.95rem;color:var(--gd)}
+
+/* ═══════════════════════════════════════════════════════
+   TIPS CONTROLS
+═══════════════════════════════════════════════════════ */
+.tc{
+  display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;
+  margin-bottom:1rem;
+  background:var(--sur);border:1px solid var(--brd);
+  border-radius:var(--rmd);padding:.75rem .9rem;
+}
+.tc label{font-size:.83rem;color:var(--mut);font-weight:500}
+.tc select{
+  padding:.38rem .65rem;
+  border:1px solid var(--brd);border-radius:var(--rsm);
+  font-size:.85rem;background:var(--bg);color:var(--txt);cursor:pointer;
+  min-height:38px;
+}
+.btn{
+  padding:.42rem .9rem;min-height:38px;
+  border-radius:var(--rsm);border:1px solid var(--gm);
+  background:var(--gm);color:#fff;
+  font-size:.85rem;font-weight:500;cursor:pointer;
+  transition:background .15s;
+}
+.btn:hover{background:var(--gd);border-color:var(--gd)}
+.btn2{background:var(--sur);color:var(--gm)}
+.btn2:hover{background:var(--gl)}
+
+/* ═══════════════════════════════════════════════════════
+   STICKY TABLE WRAPPER
+   overflow:auto na OBOU osách je kritické – position:sticky
+   se kotví k nejbližšímu scrollovacímu předkovi.
+   Na mobilu: max-height omezuje výšku, -webkit-overflow-scrolling
+   zajišťuje plynulý scroll na iOS.
+═══════════════════════════════════════════════════════ */
+.tsw{
+  overflow:auto;
+  max-height:70vh;
+  border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);
+  -webkit-overflow-scrolling:touch;
+}
+
+#tipsTable{width:100%;border-collapse:collapse;font-size:.83rem;background:var(--sur)}
+
+/* Sticky header row */
+#tipsTable thead th{
+  position:sticky;top:0;z-index:100;
+  background:var(--gd);color:#fff;
+  font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;
+  padding:.55rem .6rem;white-space:nowrap;text-align:center;
+  border-right:1px solid rgba(255,255,255,.1);
+}
+
+/* Body cells */
+#tipsTable tbody td{
+  padding:.45rem .6rem;text-align:center;
+  border-bottom:1px solid var(--brd);border-right:1px solid var(--brd);
+  font-size:.82rem;
+}
+#tipsTable tbody tr:last-child td{border-bottom:none}
+#tipsTable tbody tr:hover td{filter:brightness(.96)}
+
+/* ── Sticky col 1 (Zápas) ──
+   left:0, min-width driven by CSS variable so mobile can override */
+#tipsTable th:first-child,
+#tipsTable td:first-child{
+  position:sticky;left:0;z-index:99;
+  background:var(--sur);
+  min-width:var(--col1-w);
+  text-align:left;font-weight:500;
+}
+
+/* ── Sticky col 2 (Výsledek/výkop) ──
+   left = col1-w  */
+#tipsTable th:nth-child(2),
+#tipsTable td:nth-child(2){
+  position:sticky;left:var(--col1-w);z-index:98;
+  background:var(--sur);
+  min-width:var(--col2-w);
+  box-shadow:2px 0 5px rgba(0,0,0,.07);
+}
+
+/* Corner header cells – highest z-index, dark bg */
+#tipsTable thead th:first-child{z-index:102;background:var(--gd)}
+#tipsTable thead th:nth-child(2){z-index:101;background:var(--gd);box-shadow:2px 0 5px rgba(0,0,0,.15)}
+
+/* Cell colours */
+.ce{background:#d4edda!important;color:#155724;font-weight:600}
+.cc{background:#fff3cd!important;color:#856404}
+.cw{background:#f8d7da!important;color:#721c24}
+.cu{background:var(--bg)!important;color:var(--mut)}
+
+/* ═══════════════════════════════════════════════════════
+   CHAMPION CARDS
+═══════════════════════════════════════════════════════ */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+.ccard{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);overflow:hidden}
+.cch{display:flex;align-items:center;justify-content:space-between;background:var(--gd);color:#fff;padding:.65rem .9rem}
+.cct{font-weight:700;font-size:.95rem}
+.ccv{background:rgba(255,255,255,.2);border-radius:20px;padding:2px 9px;font-size:.78rem;font-weight:600}
+.ccb{padding:.7rem .9rem}
+.ccp{font-size:.82rem;color:var(--mut);margin-bottom:.65rem;line-height:1.55}
+.cmlist{display:flex;flex-direction:column;gap:3px}
+.cmrow{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;padding:3px 5px;border-radius:var(--rsm);background:var(--bg)}
+.cmrow .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:6px}
+.cms{font-weight:700;min-width:38px;text-align:center;border-radius:4px;padding:1px 5px;font-size:.76rem;flex-shrink:0}
+.sw{background:#d4edda;color:#155724}
+.sd{background:#fff3cd;color:#856404}
+.sl{background:#f8d7da;color:#721c24}
+.st{background:var(--brd);color:var(--mut)}
+
+/* ═══════════════════════════════════════════════════════
+   STATISTICS
+═══════════════════════════════════════════════════════ */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.85rem;margin-bottom:1.3rem}
+.sc{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);padding:.9rem 1.1rem}
+.scl{font-size:.73rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);font-weight:600;margin-bottom:.35rem}
+.scv{font-size:1.65rem;font-weight:800;color:var(--gd);line-height:1.1}
+.scs{font-size:.8rem;color:var(--mut);margin-top:.15rem}
+.stw{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);overflow:hidden;margin-bottom:1.1rem}
+.stt{padding:.65rem .9rem;font-weight:700;font-size:.86rem;background:var(--gd);color:#fff}
+/* Stats table has its own horizontal scroll on mobile */
+.stw-inner{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.stb{width:100%;border-collapse:collapse;font-size:.84rem}
+.stb th{background:#f0f4f1;color:var(--mut);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.03em;padding:.48rem .9rem;text-align:left;border-bottom:1px solid var(--brd);white-space:nowrap}
+.stb td{padding:.5rem .9rem;border-bottom:1px solid var(--brd)}
+.stb tbody tr:last-child td{border-bottom:none}
+.stb tbody tr:hover{background:var(--gl)}
+.pbar{display:flex;align-items:center;gap:7px}
+.ptrk{flex:1;height:5px;background:var(--brd);border-radius:3px;overflow:hidden;min-width:60px;max-width:110px}
+.pfil{height:100%;background:var(--gm);border-radius:3px}
+.emsg{text-align:center;padding:2rem 1rem;color:var(--mut);font-size:.88rem}
+
+/* ═══════════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════════ */
+footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;border-top:1px solid var(--brd);margin-top:1.5rem}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE  ≤ 768px
+═══════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  /* Header */
+  .hdr{padding:.7rem 1rem;gap:.65rem}
+  .hdr img{height:38px}
+  .hdr h1{font-size:1rem}
+  .hdr p{font-size:.72rem}
+
+  /* Status bar */
+  .sbar{padding:.4rem .9rem;font-size:.76rem;gap:.3rem}
+
+  /* Tab nav – larger touch targets, equal-ish widths */
+  .tbtn{padding:.7rem .9rem;font-size:.82rem;min-height:48px}
+
+  /* Layout */
+  .wrap{padding:1rem .75rem}
+
+  /* Stats grid: 2 columns */
+  .sgrid{grid-template-columns:1fr 1fr;gap:.65rem}
+  .sc{padding:.75rem .85rem}
+  .scv{font-size:1.45rem}
+
+  /* Champion grid: 1 column */
+  .cgrid{grid-template-columns:1fr}
+
+  /* Leaderboard table: slightly tighter */
+  .lbt tbody td{padding:.55rem .7rem;font-size:.83rem}
+  .lbt thead th{padding:.55rem .7rem;font-size:.73rem}
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE  ≤ 480px  – proper mobile
+═══════════════════════════════════════════════════════ */
+@media(max-width:480px){
+  /* Header – compact single row */
+  .hdr{padding:.6rem .8rem;gap:.55rem}
+  .hdr img{height:32px}
+  .hdr h1{font-size:.9rem}
+  .hdr p{display:none} /* hide tagline to save space */
+
+  /* Status bar */
+  .sbar{flex-direction:column;align-items:flex-start;padding:.4rem .8rem;gap:.2rem;font-size:.73rem}
+
+  /* Tab nav – 2×2 grid on very small screens */
+  .tnav{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    overflow-x:visible;
+    border-bottom:none;
+    gap:1px;
+    background:var(--brd);
+  }
+  .tbtn{
+    border-bottom:none;
+    border:none;
+    margin-bottom:0;
+    padding:.75rem .5rem;
+    font-size:.78rem;
+    min-height:52px;
+    justify-content:center;
+    background:var(--sur);
+  }
+  .tbtn.active{
+    background:var(--gl);
+    color:var(--gd);
+    font-weight:700;
+    /* accent bar on left instead of bottom */
+    border-left:3px solid var(--gd);
+  }
+
+  /* Layout */
+  .wrap{padding:.85rem .65rem}
+  .stitle{font-size:.95rem;margin-bottom:.75rem}
+
+  /* ── Podium: stack vertically on mobile ──
+     Order: 1st on top (largest), 2nd, 3rd below    */
+  .podium{
+    flex-direction:column;
+    align-items:stretch;
+    gap:.55rem;
+    margin-bottom:1.2rem;
+  }
+  /* Reset desktop translation so nothing overflows */
+  .pc.r1{transform:none}
+  .pc{
+    max-width:100%;
+    padding:.8rem .9rem .75rem;
+    /* horizontal layout within each card */
+    display:flex;align-items:center;gap:.75rem;
+    text-align:left;
+    border-top:none;
+    border-left:4px solid var(--brd);
+    border-radius:var(--rmd);
+  }
+  .pc.r1{border-left-color:var(--gold);order:-1} /* 1st card first */
+  .pc.r2{border-left-color:var(--silver)}
+  .pc.r3{border-left-color:var(--bronze)}
+  .pm{font-size:1.6rem;margin-bottom:0;flex-shrink:0}
+  .pc-info{flex:1;min-width:0}
+  .pn{font-size:.92rem;margin-bottom:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pp{font-size:1.5rem}
+  .ppl{font-size:.65rem}
+  .pe{font-size:.72rem;margin-top:.25rem;padding:2px 7px}
+
+  /* Leaderboard table */
+  .lbt tbody td{padding:.48rem .6rem;font-size:.8rem}
+  .lbt thead th{padding:.48rem .6rem;font-size:.7rem}
+  /* Hide "Správné" column on very small screens to save width */
+  .lbt thead th:nth-child(4),
+  .lbt tbody td:nth-child(4){display:none}
+
+  /* ── Tips controls: stack vertically ── */
+  .tc{flex-direction:column;align-items:stretch;gap:.5rem;padding:.7rem .75rem}
+  .tc label{font-size:.8rem}
+  .tc select{width:100%;font-size:.88rem;padding:.45rem .65rem}
+  .btn{width:100%;padding:.55rem .9rem;font-size:.88rem;text-align:center;min-height:44px}
+
+  /* ── Sticky table – narrower columns on mobile ──
+     Override the CSS variables defined in :root       */
+  :root{
+    --col1-w: 120px;
+    --col2-w: 80px;
+  }
+  #tipsTable thead th{padding:.45rem .45rem;font-size:.68rem}
+  #tipsTable tbody td{padding:.4rem .45rem;font-size:.75rem}
+
+  /* Stats: 1 column */
+  .sgrid{grid-template-columns:1fr}
+  .sc{padding:.7rem .8rem}
+  .scv{font-size:1.4rem}
+
+  /* Stats table: allow horizontal scroll, no min-width issue */
+  .stb th,.stb td{padding:.42rem .65rem;font-size:.78rem;white-space:nowrap}
+}
+
+/* ═══════════════════════════════════════════════════════
+   REDUCED MOTION
+═══════════════════════════════════════════════════════ */
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <img src="logo_HP_Electric_Blue_keyline.png" alt="HP"/>
+  <div>
+    <h1>Tipovací soutěž – MS ve fotbale 2026 ⚽</h1>
+    <p>Živé pořadí na základě výsledků zápasů</p>
+  </div>
+</header>
+
+<div class="sbar">
+  <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
+  <div class="si">🕐 <strong>Poslední manuální aktualizace:</strong>&nbsp;<span id="lastUpdated">–</span></div>
+</div>
+
+<nav class="tnav" role="tablist">
+  <button class="tbtn active" data-tab="poradi"     role="tab" aria-selected="true">🏆 Aktuální pořadí</button>
+  <button class="tbtn"        data-tab="tipy"       role="tab">📋 Tipy hráčů</button>
+  <button class="tbtn"        data-tab="vitez"      role="tab">🌍 Vítěz MS</button>
+  <button class="tbtn"        data-tab="statistiky" role="tab">📊 Statistiky</button>
+</nav>
+
+<main>
+  <section class="tpanel active" id="panel-poradi" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">🏆 Aktuální pořadí</p>
+      <div class="podium" id="podium"></div>
+      <div id="lbRest"></div>
+    </div>
+  </section>
+
+  <section class="tpanel" id="panel-tipy" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">📋 Tipy hráčů</p>
+      <div class="tc">
+        <label for="sel1">Hráč 1:</label>
+        <select id="sel1"></select>
+        <label for="sel2">Hráč 2:</label>
+        <select id="sel2"></select>
+        <button class="btn"  id="btnCompare">Zobrazit</button>
+        <button class="btn btn2" id="btnAll">Zobrazit všechny</button>
+      </div>
+      <div class="tsw">
+        <table id="tipsTable">
+          <thead><tr id="tipsHdr"></tr></thead>
+          <tbody id="tipsBdy"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="tpanel" id="panel-vitez" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">🌍 Tipovaný vítěz MS</p>
+      <div class="cgrid" id="champGrid"></div>
+    </div>
+  </section>
+
+  <section class="tpanel" id="panel-statistiky" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">📊 Statistiky</p>
+      <div id="statsEl"><p class="emsg">⏳ Statistiky se naplní po odehrání prvních zápasů.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Primární zdroj dat: <code>games.json</code> · Live API: <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a>
+</footer>
+
+<script>
+'use strict';
+/* ── Config ──────────────────────────────────────────── */
+const BASE_PTS    = 1;   // za správný výsledek
+const BONUS_PTS   = 2;   // za přesné skóre (+BASE = 3 celkem)
+const CHAMP_BONUS = 10;  // za vítěze MS
+let actualChampion = null;
+
+const STADIUM_OFFSETS = {
+  1:8,2:8,3:8,4:7,5:7,6:7,7:6,8:6,9:6,10:6,11:6,12:6,13:9,14:9,15:9,16:9
+};
+
+let players    = [];
+let gamesCache = [];
+
+/* ── Tab navigation ──────────────────────────────────── */
+document.querySelectorAll('.tbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tbtn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+    document.querySelectorAll('.tpanel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected','true');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── Helpers ─────────────────────────────────────────── */
+function outcome(h, a) { return h > a ? '1' : h < a ? '2' : '0'; }
+
+function isFin(g) {
+  // games.json uses boolean finished:true/false
+  // fallback: string "TRUE" from old format
+  return g.finished === true ||
+    (typeof g.finished === 'string' && g.finished.toUpperCase() === 'TRUE');
+}
+
+function normalizeGame(g) {
+  // Support both new format (homeTeam/awayTeam/homeScore/awayScore)
+  // and old API format (home_team_name_en / home_score)
+  return {
+    ...g,
+    _home:  g.homeTeam   || g.home_team_name_en  || g.home_team_name || '',
+    _away:  g.awayTeam   || g.away_team_name_en  || g.away_team_name || '',
+    _hs:    g.homeScore  != null ? g.homeScore  : (g.home_score  != null ? parseInt(g.home_score,  10) : null),
+    _as:    g.awayScore  != null ? g.awayScore  : (g.away_score  != null ? parseInt(g.away_score,  10) : null),
+    _fin:   isFin(g),
+    // kickoff: new format uses "kickoff", old uses "local_date"
+    _ko:    g.kickoff    || g.local_date || '',
+    _stad:  g.stadiumId  || g.stadium_id || '',
+  };
+}
+
+function formatKickoff(ko, stadId) {
+  if (!ko) return '';
+  // Support both "2026-06-11 13:00" and "06/11/2026 13:00"
+  let dp, tp;
+  if (ko.includes('-')) {
+    [dp, tp] = ko.split(' ');
+    const [yr, mo, da] = dp.split('-').map(Number);
+    const [hr, mi]     = (tp||'00:00').split(':').map(Number);
+    const d = new Date(yr, mo-1, da, hr, mi);
+    d.setHours(d.getHours() + (STADIUM_OFFSETS[parseInt(stadId)] || 0));
+    const wd = d.toLocaleDateString('cs-CZ',{weekday:'long',   timeZone:'Europe/Prague'});
+    const dm = d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',timeZone:'Europe/Prague'}).replace(/\s+/g,'');
+    const tm = d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Prague'});
+    return `${wd} ${dm} ${tm}`;
+  } else {
+    [dp, tp] = ko.split(' ');
+    const [mo, da, yr] = dp.split('/').map(Number);
+    const [hr, mi]     = (tp||'00:00').split(':').map(Number);
+    const d = new Date(yr, mo-1, da, hr, mi);
+    d.setHours(d.getHours() + (STADIUM_OFFSETS[parseInt(stadId)] || 0));
+    const wd = d.toLocaleDateString('cs-CZ',{weekday:'long',   timeZone:'Europe/Prague'});
+    const dm = d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',timeZone:'Europe/Prague'}).replace(/\s+/g,'');
+    const tm = d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Prague'});
+    return `${wd} ${dm} ${tm}`;
+  }
+}
+
+/* ── Score calculation ───────────────────────────────── */
+function calculateScores(finished) {
+  const results = {};
+  finished.forEach(g => {
+    results[g.id] = { home: g._hs, away: g._as };
+  });
+
+  const board = players.map(p => {
+    let pts = 0, exact = 0, correct = 0;
+    Object.keys(results).forEach(id => {
+      const r = results[id], pred = p.predictions[id];
+      if (!pred || r.home == null || r.away == null) return;
+      if (outcome(pred.home, pred.away) === outcome(r.home, r.away)) { pts += BASE_PTS; correct++; }
+      if (pred.home === r.home && pred.away === r.away)               { pts += BONUS_PTS; exact++; }
+    });
+    let cb = 0;
+    if (actualChampion && p.predictedChampion === actualChampion) cb = CHAMP_BONUS;
+    const total = Object.keys(results).filter(id => p.predictions[id]).length;
+    return { name: p.name, pts: pts + cb, exact, correct, cb, champ: p.predictedChampion, total,
+             pct: total > 0 ? Math.round(correct / total * 100) : 0 };
+  });
+
+  board.sort((a, b) => b.pts - a.pts || b.exact - a.exact);
+  renderLeaderboard(board);
+  renderStats(board, finished);
+}
+
+/* ── Helper: sort games by kickoff date+time (ascending) ──────
+   Parses both "2026-06-11 13:00" and "06/11/2026 13:00".
+   Uses explicit UTC construction to avoid browser timezone quirks. */
+function sortByKickoff(games) {
+  function toMs(g) {
+    const ko = (g._ko || '').trim();
+    if (!ko) return 0;
+    try {
+      if (/^\d{4}-/.test(ko)) {
+        // "YYYY-MM-DD HH:MM"
+        const [dp, tp = '00:00'] = ko.split(' ');
+        const [yr, mo, da] = dp.split('-').map(Number);
+        const [hr, mi]     = tp.split(':').map(Number);
+        // Treat kickoff as local US time; for sorting purposes UTC is fine
+        return Date.UTC(yr, mo - 1, da, hr, mi);
+      } else {
+        // "MM/DD/YYYY HH:MM"
+        const [dp, tp = '00:00'] = ko.split(' ');
+        const [mo, da, yr] = dp.split('/').map(Number);
+        const [hr, mi]     = tp.split(':').map(Number);
+        return Date.UTC(yr, mo - 1, da, hr, mi);
+      }
+    } catch { return 0; }
+  }
+  return [...games].sort((a, b) => toMs(a) - toMs(b));
+}
+
+/* ── Helper: competitive (Olympic) ranking ─────────────────────
+   Input:  sorted board array (best first).
+   Output: same array with `.rank` (1-based) added to each entry.
+   Rule:   tied players share the same rank; the next distinct
+           player gets rank = (their array index + 1).
+   Example: 10, 10, 8, 7 → ranks 1, 1, 3, 4
+   IMPORTANT: we compare against the RANK of the previous player,
+   not their array index, so chains of ties propagate correctly. */
+function assignRanks(board) {
+  const out = [];
+  for (let i = 0; i < board.length; i++) {
+    if (i === 0) {
+      out.push({ ...board[i], rank: 1 });
+    } else {
+      const prev     = out[i - 1];           // already has .rank
+      const sameAsPrev = board[i].pts   === board[i - 1].pts &&
+                         board[i].exact === board[i - 1].exact;
+      out.push({ ...board[i], rank: sameAsPrev ? prev.rank : i + 1 });
+    }
+  }
+  return out;
+}
+
+/* ── Helper: all players tied for the best value ───────────────
+   Returns { best, players[] } where `key` is the stat property. */
+function topTied(arr, key) {
+  if (!arr.length) return { best: 0, players: [] };
+  const best = Math.max(...arr.map(p => p[key]));
+  return { best, players: arr.filter(p => p[key] === best) };
+}
+
+/* ── Render: Leaderboard ───────────────────────────────────────
+   Podium shows players at rank 1, 2, 3 (all tied included),
+   capped at MAX_PODIUM cards so the page doesn't explode when
+   everyone has 0 pts at the tournament start.
+   The full table below always shows every player. */
+function renderLeaderboard(board) {
+  const ranked = assignRanks(board);
+
+  // ── PODIUM ──
+  // Cap: only show podium ranks 1-3. If e.g. 29 players are all
+  // tied at rank 1, we show at most MAX_PODIUM of them as a group.
+  const MAX_PODIUM = 6; // safety valve
+  const podiumPlayers = ranked
+    .filter(p => p.rank <= 3)
+    .slice(0, MAX_PODIUM);
+
+  const medalOf = { 1:'🥇', 2:'🥈', 3:'🥉' };
+  const classOf = { 1:'r1',  2:'r2',  3:'r3' };
+
+  // Group by rank so we can detect ties
+  const byRank = {};
+  podiumPlayers.forEach(p => {
+    (byRank[p.rank] = byRank[p.rank] || []).push(p);
+  });
+
+  // Visual order: rank-2 left · rank-1 centre · rank-3 right
+  // (CSS handles mobile stacking via order:-1 on .r1)
+  const displayOrder = [
+    ...(byRank[2] || []),
+    ...(byRank[1] || []),
+    ...(byRank[3] || []),
+  ];
+
+  const podEl = document.getElementById('podium');
+  podEl.innerHTML = '';
+  displayOrder.forEach(p => {
+    const shared = (byRank[p.rank] || []).length > 1;
+    const card = document.createElement('div');
+    card.className = `pc ${classOf[p.rank] || ''}`;
+    card.innerHTML = `
+      <div class="pm">${medalOf[p.rank] || ''}</div>
+      <div class="pc-info">
+        <div class="pn">${p.name}</div>
+        <div class="pp">${p.pts}</div>
+        <div class="ppl">${shared ? `${p.rank}. místo (sdílené)` : 'bodů'}</div>
+        <div class="pe">🎯 ${p.exact} přesných</div>
+      </div>`;
+    podEl.appendChild(card);
+  });
+
+  // ── FULL TABLE (everyone, with rank numbers) ──
+  // Always render the complete table so nobody gets lost.
+  const restEl = document.getElementById('lbRest');
+  const tbl = document.createElement('table');
+  tbl.className = 'lbt';
+  tbl.innerHTML = `<thead><tr>
+    <th>#</th><th>Hráč</th><th>🎯 Přesné</th><th>✓ Správné</th><th>Body</th>
+  </tr></thead>`;
+  const tb = document.createElement('tbody');
+  ranked.forEach(p => {
+    const tr = document.createElement('tr');
+    // Highlight top-3 rows lightly
+    if (p.rank <= 3) tr.style.background = 'var(--gl)';
+    tr.innerHTML = `
+      <td class="lbr">${p.rank}.</td>
+      <td class="lbn">${p.name}</td>
+      <td>${p.exact}</td>
+      <td>${p.correct}</td>
+      <td class="lbp">${p.pts}</td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  restEl.innerHTML = '';
+  restEl.appendChild(tbl);
+}
+
+/* ── Render: Tips table ──────────────────────────────── */
+function buildTipsTable(games, showPlayers) {
+  const hdr = document.getElementById('tipsHdr');
+  const bdy = document.getElementById('tipsBdy');
+  hdr.innerHTML = bdy.innerHTML = '';
+
+  // Sort by actual kickoff time before rendering
+  const sorted = sortByKickoff(games);
+
+  // Header
+  const h0 = document.createElement('th'); h0.textContent = 'Zápas'; hdr.appendChild(h0);
+  const h1 = document.createElement('th'); h1.textContent = 'Výsledek / výkop'; hdr.appendChild(h1);
+  showPlayers.forEach(p => {
+    const th = document.createElement('th'); th.textContent = p.name; hdr.appendChild(th);
+  });
+
+  sorted.forEach(g => {
+    const tr = document.createElement('tr');
+    const tdM = document.createElement('td');
+    tdM.textContent = `${g._home} vs ${g._away}`;
+    tr.appendChild(tdM);
+
+    const tdR = document.createElement('td');
+    if (g._fin && g._hs != null) {
+      tdR.textContent = `${g._hs}:${g._as}`;
+      tdR.style.fontWeight = '700';
+    } else {
+      tdR.textContent = formatKickoff(g._ko, g._stad);
+      tdR.style.color = 'var(--mut)';
+    }
+    tr.appendChild(tdR);
+
+    showPlayers.forEach(p => {
+      const td   = document.createElement('td');
+      const pred = p.predictions[g.id];
+      if (!pred) { td.className = 'cu'; td.textContent = '–'; tr.appendChild(td); return; }
+      td.textContent = `${pred.home}:${pred.away}`;
+      if (g._fin && g._hs != null) {
+        const ao = outcome(g._hs, g._as), po = outcome(pred.home, pred.away);
+        if (pred.home === g._hs && pred.away === g._as) td.className = 'ce';
+        else if (po === ao)                              td.className = 'cc';
+        else                                             td.className = 'cw';
+      } else { td.className = 'cu'; }
+      tr.appendChild(td);
+    });
+    bdy.appendChild(tr);
+  });
+}
+
+function renderAllTips() {
+  buildTipsTable(gamesCache.filter(g => g.type === 'group'), players);
+}
+function renderComparison(n1, n2) {
+  const p1 = players.find(p => p.name === n1); if (!p1) return;
+  const p2 = n2 ? players.find(p => p.name === n2) : null;
+  buildTipsTable(gamesCache.filter(g => g.type === 'group'), p2 ? [p1, p2] : [p1]);
+}
+
+/* ── Render: Champion grid ───────────────────────────── */
+
+// Unicode flag emoji pro každý tipovaný tým
+const TEAM_FLAGS = {
+  'Argentina':    '🇦🇷',
+  'Spain':        '🇪🇸',
+  'Netherlands':  '🇳🇱',
+  'France':       '🇫🇷',
+  'England':      '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+  'Portugal':     '🇵🇹',
+  'Brazil':       '🇧🇷',
+  'Germany':      '🇩🇪',
+  'Italy':        '🇮🇹',
+  'Belgium':      '🇧🇪',
+  'Croatia':      '🇭🇷',
+  'Morocco':      '🇲🇦',
+  'Senegal':      '🇸🇳',
+  'Japan':        '🇯🇵',
+  'United States':'🇺🇸',
+  'Mexico':       '🇲🇽',
+  'Uruguay':      '🇺🇾',
+  'Colombia':     '🇨🇴',
+  'Denmark':      '🇩🇰',
+  'Switzerland':  '🇨🇭',
+  'Poland':       '🇵🇱',
+  'Serbia':       '🇷🇸',
+  'Ecuador':      '🇪🇨',
+  'Cameroon':     '🇨🇲',
+  'Ghana':        '🇬🇭',
+  'South Korea':  '🇰🇷',
+  'Australia':    '🇦🇺',
+  'Iran':         '🇮🇷',
+  'Saudi Arabia': '🇸🇦',
+  'Tunisia':      '🇹🇳',
+  'Canada':       '🇨🇦',
+  'Qatar':        '🇶🇦',
+};
+
+function teamFlag(name) {
+  return TEAM_FLAGS[name] || '🏳️';
+}
+
+function renderChampionGrid() {
+  const grid = document.getElementById('champGrid');
+  grid.innerHTML = '';
+  const stats = {};
+  players.forEach(p => {
+    const c = p.predictedChampion; if (!c) return;
+    if (!stats[c]) stats[c] = { count:0, names:[] };
+    stats[c].count++; stats[c].names.push(p.name);
+  });
+  const teamGames = {};
+  gamesCache.filter(g => g.type === 'group').forEach(g => {
+    [g._home, g._away].forEach(t => {
+      if (!teamGames[t]) teamGames[t] = [];
+      teamGames[t].push(g);
+    });
+  });
+  Object.keys(stats).sort((a,b) => stats[b].count - stats[a].count).forEach(team => {
+    const { count, names } = stats[team];
+    const rows = (teamGames[team] || []).map(g => {
+      const isH = g._home === team, opp = isH ? g._away : g._home;
+      let sh = '';
+      if (g._fin && g._hs != null) {
+        const ts = isH ? g._hs : g._as, os = isH ? g._as : g._hs;
+        const cls = ts > os ? 'sw' : ts < os ? 'sl' : 'sd';
+        sh = `<span class="cms ${cls}">${ts}:${os}</span>`;
+      } else {
+        sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
+      }
+      return `<div class="cmrow"><span class="t">vs ${opp}</span>${sh}</div>`;
+    }).join('');
+    const votes = count === 1 ? '1 tip' : count < 5 ? `${count} tipy` : `${count} tipů`;
+    const card = document.createElement('div'); card.className = 'ccard';
+    card.innerHTML = `
+      <div class="cch"><span class="cct">${teamFlag(team)} ${team}</span><span class="ccv">${votes}</span></div>
+      <div class="ccb">
+        <div class="ccp">${names.join(', ')}</div>
+        ${rows ? `<div class="cmlist">${rows}</div>` : ''}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ── Render: Statistics ──────────────────────────────── */
+function streak(preds, games, mode) {
+  let max = 0, cur = 0;
+  games.forEach(g => {
+    const pr = preds[g.id]; if (!pr) { cur = 0; return; }
+    const hit = mode === 'exact'
+      ? (pr.home === g._hs && pr.away === g._as)
+      : (outcome(pr.home, pr.away) === outcome(g._hs, g._as));
+    hit ? (cur++, cur > max && (max = cur)) : (cur = 0);
+  });
+  return max;
+}
+
+function renderStats(board, finished) {
+  const el = document.getElementById('statsEl');
+  if (!finished || finished.length === 0) {
+    el.innerHTML = '<p class="emsg">⏳ Statistiky se naplní po odehrání prvních zápasů.</p>';
+    return;
+  }
+  const sorted = finished.slice().sort((a,b) => parseInt(a.id) - parseInt(b.id));
+  const ps = players.map(p => {
+    const total   = sorted.filter(g => p.predictions[g.id] && g._hs != null).length;
+    const correct = sorted.filter(g => { const pr = p.predictions[g.id]; return pr && g._hs != null && outcome(pr.home, pr.away) === outcome(g._hs, g._as); }).length;
+    const exact   = sorted.filter(g => { const pr = p.predictions[g.id]; return pr && pr.home === g._hs && pr.away === g._as; }).length;
+    return { name: p.name,
+             strk:  streak(p.predictions, sorted, 'correct'),
+             estrk: streak(p.predictions, sorted, 'exact'),
+             total, correct, exact,
+             pct: total > 0 ? Math.round(correct / total * 100) : 0 };
+  });
+
+  // All-tied helpers: returns "Jméno" for one winner, "Jméno, Jméno" for ties
+  function tiedNames(key) {
+    const { best, players: tied } = topTied(ps, key);
+    const label = tied.length > 1
+      ? tied.map(p => p.name).join(', ')
+      : tied[0].name;
+    return { best, label, count: tied.length };
+  }
+
+  const tStrk  = tiedNames('strk');
+  const tEstrk = tiedNames('estrk');
+  const tExact = tiedNames('exact');
+  const tPct   = tiedNames('pct');
+
+  // For pct card also show correct/total – use the first tied player's numbers
+  // (they all have the same pct, so the ratio may differ – show range if >1)
+  const pctTied = topTied(ps, 'pct').players;
+  const pctSub = pctTied.length === 1
+    ? `${pctTied[0].name} (${pctTied[0].correct}/${pctTied[0].total})`
+    : pctTied.map(p => `${p.name} (${p.correct}/${p.total})`).join(', ');
+
+  const cards = `<div class="sgrid">
+    <div class="sc">
+      <div class="scl">🔥 Nejdelší série správných</div>
+      <div class="scv">${tStrk.best}</div>
+      <div class="scs">${tStrk.label}</div>
+    </div>
+    <div class="sc">
+      <div class="scl">⚡ Nejdelší série přesných</div>
+      <div class="scv">${tEstrk.best}</div>
+      <div class="scs">${tEstrk.label}</div>
+    </div>
+    <div class="sc">
+      <div class="scl">🎯 Nejvíce přesných skóre</div>
+      <div class="scv">${tExact.best}</div>
+      <div class="scs">${tExact.label}</div>
+    </div>
+    <div class="sc">
+      <div class="scl">📈 Nejlepší úspěšnost</div>
+      <div class="scv">${tPct.best}%</div>
+      <div class="scs">${pctSub}</div>
+    </div>
+  </div>`;
+
+  // Detailed table: competitive rank per row
+  const psRanked = (() => {
+    const s = [...ps].sort((a,b) => b.pct - a.pct || b.exact - a.exact);
+    return s.map((p, i, arr) => {
+      const rank = i === 0 ? 1
+        : (arr[i-1].pct === p.pct && arr[i-1].exact === p.exact ? arr[i-1]._rank : i + 1);
+      return { ...p, _rank: rank };
+    });
+  })();
+
+  const rows = psRanked.map(p => `<tr>
+    <td>${p.name}</td><td>${p.exact}</td><td>${p.correct}/${p.total}</td>
+    <td><div class="pbar"><div class="ptrk"><div class="pfil" style="width:${p.pct}%"></div></div><span>${p.pct}%</span></div></td>
+    <td>${p.strk}</td>
+  </tr>`).join('');
+
+  el.innerHTML = cards + `<div class="stw">
+    <div class="stt">Detailní přehled hráčů</div>
+    <div class="stw-inner">
+    <table class="stb">
+      <thead><tr><th>Hráč</th><th>🎯 Přesná skóre</th><th>✓ Správné výsledky</th><th>📈 Úspěšnost</th><th>🔥 Max. série</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+/* ── Data loading ────────────────────────────────────── */
+async function loadPlayers() {
+  const resp = await fetch('players_predictions.json');
+  if (!resp.ok) throw new Error('Nelze načíst players_predictions.json');
+  players = await resp.json();
+}
+
+async function loadGames() {
+  const resp = await fetch('games.json');
+  if (!resp.ok) throw new Error('Nelze načíst games.json');
+  const data = await resp.json();
+  const raw  = data.games || data;
+  gamesCache = raw.map(normalizeGame);
+
+  // Show last manual update from games.json
+  if (data.lastManualUpdate) {
+    try {
+      const [dp, tp] = data.lastManualUpdate.split(' ');
+      const [yr, mo, da] = dp.split('-').map(Number);
+      const d = new Date(yr, mo-1, da);
+      const fmt = d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'});
+      document.getElementById('lastUpdated').textContent = `${fmt} ${tp || ''}`.trim();
+    } catch { document.getElementById('lastUpdated').textContent = data.lastManualUpdate; }
+  }
+}
+
+function renderAll() {
+  const fin    = gamesCache.filter(g => g._fin && g._hs != null);
+  const total  = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
+  document.getElementById('gamesPlayed').textContent = fin.length;
+  document.getElementById('gamesTotal').textContent  = total;
+  calculateScores(fin);
+  renderChampionGrid();
+  renderAllTips();
+}
+
+function populateSelects() {
+  ['sel1','sel2'].forEach(id => {
+    const s = document.getElementById(id);
+    s.innerHTML = '<option value="">Vyberte hráče…</option>';
+    players.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p.name; s.appendChild(o); });
+  });
+}
+
+/* ── Try live API silently after local data loaded ───── */
+async function tryLiveAPI() {
+  try {
+    const r = await fetch('https://worldcup26.ir/get/games');
+    if (!r.ok) return;
+    const data = await r.json();
+    const raw  = (Array.isArray(data) ? data : data.games || []);
+    if (!raw.length) return;
+
+    const apiGames = raw.map(normalizeGame);
+
+    // Merge strategy: keep manual games.json results when API disagrees.
+    // For each game, if our local cache says finished=true but the API says
+    // finished=false (API hasn't updated yet), keep the local version.
+    const localById = {};
+    gamesCache.forEach(g => { localById[g.id] = g; });
+
+    gamesCache = apiGames.map(apiGame => {
+      const local = localById[apiGame.id];
+      // Prefer local when it's manually marked finished and API disagrees
+      if (local && local._fin && !apiGame._fin) return local;
+      return apiGame;
+    });
+
+    renderAll();
+  } catch { /* API nedostupné – games.json je primární */ }
+}
+
+/* ── Event listeners ─────────────────────────────────── */
+document.getElementById('btnCompare').addEventListener('click', () => {
+  const n1 = document.getElementById('sel1').value;
+  const n2 = document.getElementById('sel2').value;
+  if (n1) renderComparison(n1, n2 || null);
+});
+document.getElementById('btnAll').addEventListener('click', renderAllTips);
+
+/* ── Init ────────────────────────────────────────────── */
+async function init() {
+  try {
+    await loadPlayers();
+    await loadGames();
+    populateSelects();
+    renderAll();
+    tryLiveAPI(); // tichá záloha na pozadí
+  } catch (e) {
+    console.error('Chyba při inicializaci:', e);
+    document.getElementById('lastUpdated').textContent = 'Chyba načítání dat';
+  }
+}
+init();
+</script>
+</body>
+</html>
