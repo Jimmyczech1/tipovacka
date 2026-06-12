@@ -1,5 +1,5 @@
 {
-  "lastManualUpdate": "2026-06-12 07:45",
+  "lastManualUpdate": "2026-06-12 08:30",
   "games": [
     {
       "id": "1",
@@ -21,9 +21,9 @@
       "awayTeam": "Czech Republic",
       "kickoff": "2026-06-11 20:00",
       "stadiumId": "2",
-      "finished": true,
-      "homeScore": 2,
-      "awayScore": 1
+      "finished": false,
+      "homeScore": null,
+      "awayScore": null
     },
     {
       "id": "3",

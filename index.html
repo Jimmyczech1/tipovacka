@@ -8,6 +8,7 @@
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS
 ═══════════════════════════════════════════════════════ */
+
 :root {
   --gd:  #0a4a2a;
   --gm:  #1a7a42;
@@ -252,6 +253,14 @@ a{color:inherit;text-decoration:none}
 footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;border-top:1px solid var(--brd);margin-top:1.5rem}
 
 /* ═══════════════════════════════════════════════════════
+   UPDATE SOURCE BADGES (status bar)
+═══════════════════════════════════════════════════════ */
+.ubadge{display:inline-block;font-size:.7rem;font-weight:600;padding:1px 7px;border-radius:10px;vertical-align:middle;margin-left:2px}
+.ubadge-auto  {background:rgba(255,255,255,.25);color:#fff}
+.ubadge-manual{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.ubadge-live  {background:#f4b942;color:#1a2e1a}
+
+/* ═══════════════════════════════════════════════════════
    RESPONSIVE  ≤ 768px
 ═══════════════════════════════════════════════════════ */
 @media(max-width:768px){
@@ -408,7 +417,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 
 <div class="sbar">
   <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
-  <div class="si">🕐 <strong>Poslední manuální aktualizace:</strong>&nbsp;<span id="lastUpdated">–</span></div>
+  <div class="si">🕐 <span id="updateLabel">Poslední aktualizace:</span>&nbsp;<span id="lastUpdated">–</span>&nbsp;<span id="updateBadge"></span></div>
 </div>
 
 <nav class="tnav" role="tablist">
@@ -958,27 +967,39 @@ async function loadPlayers() {
 }
 
 async function loadGames() {
-  const resp = await fetch('games.json');
-  if (!resp.ok) throw new Error('Nelze načíst games.json');
-  const data = await resp.json();
-  const raw  = data.games || data;
-  gamesCache = raw.map(normalizeGame);
+  try {
+    const resp = await fetch('games.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    gamesCache = (data.games || data).map(normalizeGame);
 
-  // Show last manual update from games.json
-  if (data.lastManualUpdate) {
-    try {
-      const [dp, tp] = data.lastManualUpdate.split(' ');
-      const [yr, mo, da] = dp.split('-').map(Number);
-      const d = new Date(yr, mo-1, da);
-      const fmt = d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'});
-      document.getElementById('lastUpdated').textContent = `${fmt} ${tp || ''}`.trim();
-    } catch { document.getElementById('lastUpdated').textContent = data.lastManualUpdate; }
+    // Zobraz čas poslední aktualizace + badge zdroje
+    // Podporuje: starý klíč lastManualUpdate i nový lastUpdate + updateSource
+    const ts     = data.lastUpdate || data.lastManualUpdate || '';
+    const source = data.updateSource || 'manual'; // 'auto' | 'manual'
+    if (ts) {
+      let label = ts;
+      try {
+        const [dp, tp] = ts.split(' ');
+        const [yr, mo, da] = dp.split('-').map(Number);
+        const d = new Date(yr, mo-1, da);
+        label = d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'}).replace(/\s+/g,'') + (tp ? ' ' + tp : '');
+      } catch { label = ts; }
+      document.getElementById('lastUpdated').textContent = label;
+      document.getElementById('updateBadge').innerHTML =
+        source === 'auto'
+          ? '<span class="ubadge ubadge-auto">⚙ auto</span>'
+          : '<span class="ubadge ubadge-manual">✎ manuálně</span>';
+    }
+  } catch (err) {
+    console.warn('Nelze načíst games.json:', err);
+    gamesCache = [];
   }
 }
 
 function renderAll() {
-  const fin    = gamesCache.filter(g => g._fin && g._hs != null);
-  const total  = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
+  const fin   = gamesCache.filter(g => isFin(g));
+  const total = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
   document.getElementById('gamesPlayed').textContent = fin.length;
   document.getElementById('gamesTotal').textContent  = total;
   calculateScores(fin);
@@ -994,7 +1015,10 @@ function populateSelects() {
   });
 }
 
-/* ── Try live API silently after local data loaded ───── */
+/* ── Live API overlay (tichý pokus na pozadí) ────────────────
+   Pokud worldcup26.ir odpoví, data se použijí POUZE V PAMĚTI.
+   games.json se z prohlížeče NIKDY nepřepíše.
+   Po refreshi stránky se vše vrátí na stav z games.json.      */
 async function tryLiveAPI() {
   try {
     const r = await fetch('https://worldcup26.ir/get/games');
@@ -1005,21 +1029,23 @@ async function tryLiveAPI() {
 
     const apiGames = raw.map(normalizeGame);
 
-    // Merge strategy: keep manual games.json results when API disagrees.
-    // For each game, if our local cache says finished=true but the API says
-    // finished=false (API hasn't updated yet), keep the local version.
+    // Merge: manuálně odehrané zápasy mají vždy přednost před API
     const localById = {};
     gamesCache.forEach(g => { localById[g.id] = g; });
-
-    gamesCache = apiGames.map(apiGame => {
-      const local = localById[apiGame.id];
-      // Prefer local when it's manually marked finished and API disagrees
-      if (local && local._fin && !apiGame._fin) return local;
-      return apiGame;
+    gamesCache = apiGames.map(ag => {
+      const local = localById[ag.id];
+      if (local && local._fin && !ag._fin) return local;
+      return ag;
     });
 
     renderAll();
-  } catch { /* API nedostupné – games.json je primární */ }
+
+    // Badge: live data jsou v paměti (žlutá)
+    document.getElementById('updateBadge').innerHTML =
+      '<span class="ubadge ubadge-live">⚡ live API</span>';
+    document.getElementById('lastUpdated').textContent =
+      new Date().toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
+  } catch { /* API nedostupné – games.json zůstává primární */ }
 }
 
 /* ── Event listeners ─────────────────────────────────── */
