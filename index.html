@@ -412,7 +412,6 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 ═══════════════════════════════════════════════════════ */
 .ubadge{display:inline-block;font-size:.7rem;font-weight:600;padding:1px 7px;border-radius:10px;vertical-align:middle;margin-left:2px}
 .ubadge-auto  {background:rgba(255,255,255,.25);color:#fff}
-.ubadge-manual{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
 .ubadge-live  {background:#f4b942;color:#1a2e1a}
 .ubadge-sync  {background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);animation:ubadge-pulse 1.2s ease-in-out infinite}
 @keyframes ubadge-pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -1784,7 +1783,9 @@ function showSyncingBadge() {
 }
 
 // Zobrazí nejlepší dostupná data: živou cache z dnešní návštěvy (pokud je),
-// jinak údaj z games.json (auto/manuální).
+// jinak časovou značku z automatického sync (games.json updateSource="auto").
+// Samotné lastManualUpdate (jednorázový manuální zápis bez dalších aktualizací)
+// se v UI nezobrazuje – časem by jen působilo zavádějivě jako "stará" data.
 function showFallbackBadge() {
   if (cachedLiveTs) {
     showUpdateBadge(
@@ -1793,15 +1794,14 @@ function showFallbackBadge() {
     );
     return;
   }
-  if (fallbackUpdateLabel) {
-    const { ts, source } = fallbackUpdateLabel;
+  if (fallbackUpdateLabel && fallbackUpdateLabel.source === 'auto') {
     showUpdateBadge(
-      formatUpdateTs(ts),
-      source === 'auto'
-        ? '<span class="ubadge ubadge-auto">⚙ auto</span>'
-        : '<span class="ubadge ubadge-manual">✎ manuálně</span>'
+      formatUpdateTs(fallbackUpdateLabel.ts),
+      '<span class="ubadge ubadge-auto">⚙ auto</span>'
     );
+    return;
   }
+  showUpdateBadge('–', '');
 }
 
 async function loadGames() {
