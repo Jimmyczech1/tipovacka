@@ -254,12 +254,37 @@ a{color:inherit;text-decoration:none}
 .next-match{
   background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);
   box-shadow:var(--s1);padding:1rem;
+  animation:nm-fade .25s ease;
+  touch-action:pan-y;
 }
+.next-match:focus{outline:none}
+@keyframes nm-fade{
+  from{opacity:0; transform:translateY(4px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.nm-carousel-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.nm-nav-btn{
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--brd);flex-shrink:0;
+  background:var(--bg);color:var(--gm);font-size:1.3rem;font-weight:700;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;
+  transition:background .15s, opacity .15s;
+}
+.nm-nav-btn:hover:not(:disabled){background:var(--gl);color:var(--gd)}
+.nm-nav-btn:disabled{opacity:.25;cursor:default}
+.nm-meta{display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.nm-badge{
+  font-size:.7rem;font-weight:700;padding:.22rem .65rem;border-radius:999px;
+  text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;
+}
+.nm-badge-done{background:var(--gl);color:var(--gm)}
+.nm-badge-pending{background:#fff4e0;color:#b9760a}
+.nm-counter{font-size:.7rem;color:var(--mut)}
 .nm-head{display:flex;align-items:center;justify-content:center;gap:.5rem;text-align:center}
 .nm-team{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:0}
 .nm-flag{font-size:2.6rem;line-height:1}
 .nm-name{font-weight:700;font-size:.92rem;color:var(--gd);width:100%;text-align:center;word-break:break-word}
 .nm-vs{font-size:.76rem;color:var(--mut);font-weight:700;flex-shrink:0;padding:0 .25rem;text-transform:uppercase}
+.nm-score{font-size:1.7rem;font-weight:800;color:var(--gd);flex-shrink:0;padding:0 .4rem;letter-spacing:.04em}
 .nm-time{font-size:.8rem;color:var(--mut);text-align:center;margin-top:.5rem}
 .poll-bar{
   display:flex;height:30px;border-radius:var(--rsm);overflow:hidden;
@@ -296,6 +321,8 @@ a{color:inherit;text-decoration:none}
 @media(max-width:480px){
   .nm-flag{font-size:2.1rem}
   .nm-name{font-size:.82rem}
+  .nm-score{font-size:1.4rem}
+  .nm-nav-btn{width:34px;height:34px;font-size:1.15rem}
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -635,6 +662,7 @@ const STADIUM_OFFSETS = {
 
 let players    = [];
 let gamesCache = [];
+let nmCurrentId = null; // id of the game currently shown in the "Další zápas" carousel
 
 /* ── Tab navigation ──────────────────────────────────── */
 document.querySelectorAll('.tbtn').forEach(btn => {
@@ -818,12 +846,6 @@ function getFinishedGroupGames() {
   return sortByKickoff(gamesCache.filter(g => g.type === 'group' && g._fin && g._hs != null));
 }
 
-/* ── Helper: the next game still waiting to be played ───────────
-   Earliest kickoff among unfinished games. */
-function getNextMatch() {
-  const upcoming = sortByKickoff(gamesCache.filter(g => !g._fin));
-  return upcoming[0] || null;
-}
 
 /* ── Helper: group finished games into "rounds" by kickoff date ─
    Returns [{ date:'YYYY-MM-DD', games:[...] }, ...] in chronological order. */
@@ -1043,6 +1065,16 @@ const TEAM_FLAGS = {
 
 function teamFlag(name) {
   return TEAM_FLAGS[name] || '🏳️';
+}
+
+/* ── Helper: friendlier names for not-yet-decided knockout slots ─
+   "Winner Match 86" → "Vítěz zápasu 86", "Loser Match 101" → "Poražený zápasu 101" */
+function displayTeamName(name) {
+  let m = name.match(/^Winner Match (\d+)$/);
+  if (m) return `Vítěz zápasu ${m[1]}`;
+  m = name.match(/^Loser Match (\d+)$/);
+  if (m) return `Poražený zápasu ${m[1]}`;
+  return name;
 }
 
 function renderChampionGrid() {
@@ -1338,104 +1370,188 @@ function renderBiggestJumpCard(rounds) {
   return newsCard('📈', '📈 Největší skok v pořadí', `${names} ${verb} o ${bestDiff} ${unit} nahoru po posledním kole.`);
 }
 
-/* ── Poll for the next match: who's predicting what ──────────── */
+/* ── Poll for a match: who's predicting what ─────────────────── */
 function computeMatchPoll(game) {
   const buckets = { '1': [], '0': [], '2': [] };
   const scoreCounts = {};
-  let sumH = 0, sumA = 0, n = 0;
+  let n = 0;
   players.forEach(p => {
     const pred = p.predictions[game.id];
     if (!pred) return;
     buckets[outcome(pred.home, pred.away)].push(p.name);
     const key = `${pred.home}:${pred.away}`;
     scoreCounts[key] = (scoreCounts[key] || 0) + 1;
-    sumH += pred.home; sumA += pred.away; n++;
+    n++;
   });
-  const avg = n ? { home: sumH / n, away: sumA / n } : null;
-  return { buckets, scoreCounts, avg, n };
+  return { buckets, scoreCounts, n };
 }
 
-function renderNextMatch() {
-  const el = document.getElementById('nextMatch');
-  const game = getNextMatch();
-  if (!game) {
-    el.innerHTML = '<p class="emsg">🏁 Všechny zápasy jsou odehrané.</p>';
-    return;
-  }
-
-  const home = game._home || 'TBD', away = game._away || 'TBD';
-  const when = formatKickoff(game._ko, game._stad);
-  const cd   = formatCountdown(game._ko, game._stad);
-
-  const head = `
-    <div class="nm-head">
-      <div class="nm-team"><span class="nm-flag">${teamFlag(home)}</span><span class="nm-name">${home}</span></div>
-      <div class="nm-vs">vs</div>
-      <div class="nm-team"><span class="nm-flag">${teamFlag(away)}</span><span class="nm-name">${away}</span></div>
-    </div>
-    <p class="nm-time">${when}${cd ? ` · ${cd}` : ''}</p>`;
-
-  const { buckets, scoreCounts, avg, n } = computeMatchPoll(game);
-  if (n === 0) {
-    el.innerHTML = `<div class="next-match">${head}<p class="emsg">Tipy na tento zápas ještě nejsou k dispozici.</p></div>`;
-    return;
-  }
-
+/* ── Short verdict sentence for a match card ─────────────────────
+   Upcoming match: who the crowd currently favours.
+   Finished match: did the crowd's favourite actually happen? */
+function buildConsensus(game, buckets, n, home, away) {
   const pct1 = Math.round(buckets['1'].length / n * 100);
   const pct0 = Math.round(buckets['0'].length / n * 100);
   const pct2 = 100 - pct1 - pct0;
+  const maxPct = Math.max(pct1, pct0, pct2);
+  const maxKey = maxPct === pct1 ? '1' : maxPct === pct2 ? '2' : '0';
+  const favLabel = maxKey === '1' ? `ve výhru ${teamFlag(home)} ${home}`
+                 : maxKey === '2' ? `ve výhru ${teamFlag(away)} ${away}`
+                 : 'v remízu';
 
-  const maxCount  = Math.max(...Object.values(scoreCounts));
-  const topScores = Object.keys(scoreCounts).filter(k => scoreCounts[k] === maxCount);
-  const scoreLine = `Nejtipovanější skóre: <strong>${topScores.join(', ')}</strong> (${maxCount}× z ${n})`;
-  const avgLine   = `Průměrný tip davu: <strong>${avg.home.toFixed(1)} : ${avg.away.toFixed(1)}</strong>`;
+  if (game._fin && game._hs != null && game._as != null) {
+    const actualKey = outcome(game._hs, game._as);
+    if (actualKey === maxKey) return `✅ Dav to trefil – ${maxPct} % hráčů věřilo ${favLabel}.`;
+    const actualLabel = actualKey === '1' ? `výhra ${teamFlag(home)} ${home}`
+                       : actualKey === '2' ? `výhra ${teamFlag(away)} ${away}`
+                       : 'remíza';
+    return `❌ Dav se spletl – ${maxPct} % hráčů věřilo ${favLabel}, ale nakonec byla ${actualLabel}.`;
+  }
 
-  const maxPct  = Math.max(pct1, pct0, pct2);
-  const winWhom = maxPct === pct1 ? `ve výhru ${teamFlag(home)} ${home}`
-                : maxPct === pct2 ? `ve výhru ${teamFlag(away)} ${away}`
-                : 'v remízu';
-  let consensus;
-  if (maxPct >= 65)      consensus = `🔥 Drtivá shoda – ${maxPct} % hráčů věří ${winWhom}.`;
-  else if (maxPct <= 40) consensus = `🌪️ Tipy se hodně různí, jasného favorita mezi hráči nenajdeme.`;
-  else                   consensus = `⚖️ Mírná převaha – ${maxPct} % hráčů věří ${winWhom}.`;
+  if (maxPct >= 65)      return `🔥 Drtivá shoda – ${maxPct} % hráčů věří ${favLabel}.`;
+  if (maxPct <= 40)      return `🌪️ Tipy se hodně různí, jasného favorita mezi hráči nenajdeme.`;
+  return `⚖️ Mírná převaha – ${maxPct} % hráčů věří ${favLabel}.`;
+}
 
-  const seg = (pct, cls) => pct > 0
-    ? `<div class="poll-seg ${cls}" style="flex:${pct}">${pct >= 8 ? `${pct}%` : ''}</div>`
-    : '';
+/* ── "Další zápas" carousel ────────────────────────────────────
+   Shows one match card at a time, navigable by arrows/swipe.
+   Default: the nearest unplayed match, or the last played one
+   if the whole tournament is over. Position persists (nmCurrentId)
+   across re-renders triggered by the live API overlay. */
+function renderNextMatch() {
+  const el = document.getElementById('nextMatch');
+  const games = sortByKickoff(gamesCache);
+  if (!games.length) {
+    el.innerHTML = '<p class="emsg">Žádné zápasy k zobrazení.</p>';
+    return;
+  }
 
-  const chip = (key, label, pct) => {
-    const names = buckets[key];
-    return `
-      <button type="button" class="poll-chip" data-key="${key}">
-        <span>${label} <span class="pc-pct">${pct}%</span> <span class="pc-n">(${names.length})</span></span>
-        <span class="poll-chip-arrow">▾</span>
-      </button>
-      <div class="poll-names" data-key="${key}" hidden>${names.length ? listNames(names, names.length) : 'Nikdo'}</div>`;
-  };
+  if (nmCurrentId == null || !games.some(g => g.id === nmCurrentId)) {
+    const idx = games.findIndex(g => !g._fin);
+    nmCurrentId = (idx === -1 ? games[games.length - 1] : games[idx]).id;
+  }
 
-  el.innerHTML = `
-    <div class="next-match">
-      ${head}
+  renderMatchCard(el, games, games.findIndex(g => g.id === nmCurrentId));
+}
+
+function nmNavigate(el, games, idx, delta) {
+  const newIdx = idx + delta;
+  if (newIdx < 0 || newIdx >= games.length) return;
+  nmCurrentId = games[newIdx].id;
+  renderMatchCard(el, games, newIdx);
+}
+
+function renderMatchCard(el, games, idx) {
+  const game = games[idx];
+  const home = displayTeamName(game._home || 'TBD');
+  const away = displayTeamName(game._away || 'TBD');
+  const finished = game._fin && game._hs != null && game._as != null;
+
+  const badge = finished
+    ? '<span class="nm-badge nm-badge-done">✅ Odehráno</span>'
+    : '<span class="nm-badge nm-badge-pending">⏳ Čeká se</span>';
+
+  const middle = finished
+    ? `<div class="nm-score">${game._hs} : ${game._as}</div>`
+    : '<div class="nm-vs">vs</div>';
+
+  const when = formatKickoff(game._ko, game._stad);
+  const cd   = finished ? '' : formatCountdown(game._ko, game._stad);
+
+  const nav = `
+    <div class="nm-carousel-bar">
+      <button type="button" class="nm-nav-btn" id="nmPrev" aria-label="Předchozí zápas" ${idx === 0 ? 'disabled' : ''}>‹</button>
+      <div class="nm-meta">
+        ${badge}
+        <span class="nm-counter">Zápas ${idx + 1} / ${games.length}</span>
+      </div>
+      <button type="button" class="nm-nav-btn" id="nmNext" aria-label="Další zápas" ${idx === games.length - 1 ? 'disabled' : ''}>›</button>
+    </div>`;
+
+  const head = `
+    <div class="nm-head">
+      <div class="nm-team"><span class="nm-flag">${teamFlag(game._home)}</span><span class="nm-name">${home}</span></div>
+      ${middle}
+      <div class="nm-team"><span class="nm-flag">${teamFlag(game._away)}</span><span class="nm-name">${away}</span></div>
+    </div>
+    <p class="nm-time">${when}${cd ? ` · ${cd}` : ''}</p>`;
+
+  const { buckets, scoreCounts, n } = computeMatchPoll(game);
+
+  let body;
+  if (n === 0) {
+    body = '<p class="emsg">Tipy na tento zápas ještě nejsou k dispozici.</p>';
+  } else {
+    const pct1 = Math.round(buckets['1'].length / n * 100);
+    const pct0 = Math.round(buckets['0'].length / n * 100);
+    const pct2 = 100 - pct1 - pct0;
+
+    const maxCount  = Math.max(...Object.values(scoreCounts));
+    const topScores = Object.keys(scoreCounts).filter(k => scoreCounts[k] === maxCount);
+    const scoreLine = `Nejtipovanější skóre: <strong>${topScores.join(', ')}</strong> (${maxCount}× z ${n})`;
+    const consensus = buildConsensus(game, buckets, n, game._home || 'TBD', game._away || 'TBD');
+
+    const seg = (pct, cls) => pct > 0
+      ? `<div class="poll-seg ${cls}" style="flex:${pct}">${pct >= 8 ? `${pct}%` : ''}</div>`
+      : '';
+
+    const chip = (key, label, pct) => {
+      const names = buckets[key];
+      return `
+        <button type="button" class="poll-chip" data-key="${key}">
+          <span>${label} <span class="pc-pct">${pct}%</span> <span class="pc-n">(${names.length})</span></span>
+          <span class="poll-chip-arrow">▾</span>
+        </button>
+        <div class="poll-names" data-key="${key}" hidden>${names.length ? listNames(names, names.length) : 'Nikdo'}</div>`;
+    };
+
+    body = `
       <div class="poll-bar">
         ${seg(pct1, 'home')}${seg(pct0, 'draw')}${seg(pct2, 'away')}
       </div>
       <div class="poll-chips">
-        ${chip('1', `${teamFlag(home)} ${home}`, pct1)}
+        ${chip('1', `${teamFlag(game._home)} ${home}`, pct1)}
         ${chip('0', '🤝 Remíza', pct0)}
-        ${chip('2', `${teamFlag(away)} ${away}`, pct2)}
+        ${chip('2', `${teamFlag(game._away)} ${away}`, pct2)}
       </div>
-      <p class="nm-stat">${scoreLine}<br>${avgLine}</p>
-      <p class="nm-consensus">${consensus}</p>
-    </div>`;
+      <p class="nm-stat">${scoreLine}</p>
+      <p class="nm-consensus">${consensus}</p>`;
+  }
 
-  el.querySelectorAll('.poll-chip').forEach(btn => {
+  el.innerHTML = `<div class="next-match" tabindex="0">${nav}${head}${body}</div>`;
+
+  const card = el.querySelector('.next-match');
+
+  card.querySelector('#nmPrev')?.addEventListener('click', () => nmNavigate(el, games, idx, -1));
+  card.querySelector('#nmNext')?.addEventListener('click', () => nmNavigate(el, games, idx, 1));
+
+  card.querySelectorAll('.poll-chip').forEach(btn => {
     btn.addEventListener('click', () => {
-      const panel = el.querySelector(`.poll-names[data-key="${btn.dataset.key}"]`);
+      const panel = card.querySelector(`.poll-names[data-key="${btn.dataset.key}"]`);
       const willOpen = panel.hidden;
       panel.hidden = !willOpen;
       btn.classList.toggle('open', willOpen);
     });
   });
+
+  card.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  nmNavigate(el, games, idx, -1);
+    if (e.key === 'ArrowRight') nmNavigate(el, games, idx, 1);
+  });
+
+  // Swipe support for touch devices
+  let touchX = 0, touchY = 0;
+  card.addEventListener('touchstart', e => {
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
+  card.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    const dy = e.changedTouches[0].clientY - touchY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      nmNavigate(el, games, idx, dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
 }
 
 function renderNewsfeed() {
