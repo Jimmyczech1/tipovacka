@@ -292,8 +292,17 @@ a{color:inherit;text-decoration:none}
   box-shadow:var(--s1);padding:1rem;
 }
 .chart-card svg{display:block;width:100%;height:auto}
-.chart-legend{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin-top:.8rem;font-size:.78rem;color:var(--mut)}
-.chart-legend-item{display:flex;align-items:center;gap:5px}
+.chart-line{transition:opacity .15s, stroke-width .15s}
+.chart-actions{display:flex;gap:.5rem;margin-top:.8rem}
+.chart-actions .btn{padding:.3rem .7rem;min-height:30px;font-size:.78rem}
+.chart-legend{display:flex;flex-wrap:wrap;gap:.4rem .8rem;margin-top:.6rem;font-size:.78rem;color:var(--mut)}
+.chart-legend-item{
+  display:flex;align-items:center;gap:5px;
+  background:none;border:none;padding:2px 4px;border-radius:var(--rsm);
+  font-size:.78rem;color:var(--mut);cursor:pointer;font-family:inherit;
+}
+.chart-legend-item:hover{background:var(--gl)}
+.chart-legend-item.off{opacity:.4;text-decoration:line-through}
 .chart-sw{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 
 /* ═══════════════════════════════════════════════════════
@@ -1196,11 +1205,25 @@ function renderUnluckyCard(roundGames) {
       if (!exact && diff === 1) near++;
     });
     return { name: p.name, near };
-  });
-  const { best, players: tied } = topTied(counts, 'near');
-  if (best === 0) return '';
-  const names = listNames(tied.map(p => p.name));
-  return newsCard('😬', '😬 Smolař kola', `${names} ${tied.length > 1 ? 'byli' : 'byl'} jen o gól od přesného tipu (${best}×).`);
+  }).filter(p => p.near > 0);
+  if (!counts.length) return '';
+
+  // Group everyone who had at least one near-miss, not just the round leader
+  const byCount = {};
+  counts.forEach(p => { (byCount[p.near] = byCount[p.near] || []).push(p.name); });
+
+  const sentences = Object.keys(byCount)
+    .map(Number)
+    .sort((a, b) => b - a)
+    .map(n => {
+      const tied  = byCount[n];
+      const names = listNames(tied);
+      const verb  = tied.length > 1 ? 'byli' : 'byl';
+      const times = roundGames.length > 1 ? ` (${n}× v tomto kole)` : '';
+      return `${names} ${verb} jen o gól od přesného tipu${times}.`;
+    });
+
+  return newsCard('😬', '😬 Smolař kola', sentences.join(' '));
 }
 
 /* Biggest jump in the standings compared to before the last round */
@@ -1275,7 +1298,11 @@ function renderFormGuide() {
 }
 
 /* ── Graf vývoje bodů: cumulative match points per finished game ─── */
-const CHART_COLORS = ['#1a7a42', '#f4b942', '#3a7bd5', '#c0392b', '#8e44ad', '#16a085', '#d35400', '#2c3e50'];
+/* Distinct colors for an arbitrary number of players (golden-angle hue spread) */
+function chartColor(i) {
+  const hue = Math.round((i * 137.508) % 360);
+  return `hsl(${hue}, 62%, 45%)`;
+}
 
 function computePointsSeries() {
   const finished = getFinishedGroupGames();
@@ -1311,11 +1338,8 @@ function renderPointsChart() {
   const xStep  = (W - PAD * 2) / n;
   const xScale = i => PAD + i * xStep;
   const yScale = v => H - PAD - (v / maxPts) * (H - PAD * 2);
-
-  // Highlight the top players by current total; everyone else is a faint background line
-  const topNames = names.slice().sort((a, b) => series[b][n] - series[a][n]).slice(0, 6);
-  const colorOf  = {};
-  topNames.forEach((name, i) => { colorOf[name] = CHART_COLORS[i % CHART_COLORS.length]; });
+  const colorOf = {};
+  names.forEach((name, i) => { colorOf[name] = chartColor(i); });
 
   let svg = `<svg viewBox="0 0 ${W} ${H}">`;
   // Gridlines + Y-axis labels
@@ -1325,26 +1349,51 @@ function renderPointsChart() {
     svg += `<line x1="${PAD}" y1="${y}" x2="${W - PAD}" y2="${y}" stroke="#e0e6e2" stroke-width="1"/>`;
     svg += `<text x="2" y="${y + 4}" font-size="10" fill="#607068">${Math.round(yv)}</text>`;
   }
-  // Background lines for everyone else
-  names.forEach(name => {
-    if (topNames.includes(name)) return;
-    const pts = series[name].map((v, i) => `${xScale(i)},${yScale(v)}`).join(' ');
-    svg += `<polyline points="${pts}" fill="none" stroke="#cdd7d1" stroke-width="1.2" opacity="0.7"/>`;
-  });
-  // Highlighted top players on top
-  topNames.forEach(name => {
-    const pts = series[name].map((v, i) => `${xScale(i)},${yScale(v)}`).join(' ');
-    svg += `<polyline points="${pts}" fill="none" stroke="${colorOf[name]}" stroke-width="2.5"/>`;
+  // One line per player, each with its own color
+  names.forEach((name, i) => {
+    const pts = series[name].map((v, j) => `${xScale(j)},${yScale(v)}`).join(' ');
+    svg += `<polyline class="chart-line" data-idx="${i}" points="${pts}" fill="none" stroke="${colorOf[name]}" stroke-width="2"/>`;
   });
   svg += `</svg>`;
 
-  const legend = topNames.map(name =>
-    `<div class="chart-legend-item"><span class="chart-sw" style="background:${colorOf[name]}"></span>${name} (${series[name][n]} b)</div>`
-  ).join('');
+  // Legend doubles as a toggle: click to show/hide a line, sorted by current total
+  const order = names.slice().sort((a, b) => series[b][n] - series[a][n]);
+  const legend = order.map(name => {
+    const i = names.indexOf(name);
+    return `<button type="button" class="chart-legend-item" data-idx="${i}"><span class="chart-sw" style="background:${colorOf[name]}"></span>${name} (${series[name][n]} b)</button>`;
+  }).join('');
 
   el.innerHTML = svg
+    + `<div class="chart-actions">
+         <button type="button" class="btn btn2 chart-toggle-all" data-show="1">Zobrazit vše</button>
+         <button type="button" class="btn btn2 chart-toggle-all" data-show="0">Skrýt vše</button>
+       </div>`
     + `<div class="chart-legend">${legend}</div>`
-    + `<p class="form-hint" style="margin-top:.6rem">Osa X = pořadí odehraných zápasů (1–${n}), osa Y = body ze zápasů. Ostatní hráči jsou šedě na pozadí.</p>`;
+    + `<p class="form-hint" style="margin-top:.6rem">Osa X = pořadí odehraných zápasů (1–${n}), osa Y = body ze zápasů. Klikem na jméno linku schováte/zobrazíte, najetím myší ji zvýrazníte.</p>`;
+
+  const lines = el.querySelectorAll('.chart-line');
+  el.querySelectorAll('.chart-legend-item').forEach(btn => {
+    const line = el.querySelector(`.chart-line[data-idx="${btn.dataset.idx}"]`);
+    btn.addEventListener('click', () => {
+      const hidden = line.style.display === 'none';
+      line.style.display = hidden ? '' : 'none';
+      btn.classList.toggle('off', !hidden);
+    });
+    btn.addEventListener('mouseenter', () => {
+      lines.forEach(l => { l.style.opacity = (l === line) ? '1' : '.12'; });
+      if (line.style.display !== 'none') { line.style.strokeWidth = '4'; }
+    });
+    btn.addEventListener('mouseleave', () => {
+      lines.forEach(l => { l.style.opacity = '1'; l.style.strokeWidth = '2'; });
+    });
+  });
+  el.querySelectorAll('.chart-toggle-all').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const show = btn.dataset.show === '1';
+      lines.forEach(l => { l.style.display = show ? '' : 'none'; });
+      el.querySelectorAll('.chart-legend-item').forEach(b => b.classList.toggle('off', !show));
+    });
+  });
 }
 
 /* ── Hlava na hlavu: head-to-head summary for two compared players ── */
