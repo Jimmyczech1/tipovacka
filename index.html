@@ -278,6 +278,7 @@ a{color:inherit;text-decoration:none}
 }
 .nm-badge-done{background:var(--gl);color:var(--gm)}
 .nm-badge-pending{background:#fff4e0;color:#b9760a}
+.nm-badge-next{background:#fde6e0;color:#c0392b}
 .nm-counter{font-size:.7rem;color:var(--mut)}
 .nm-head{display:flex;align-items:center;justify-content:center;gap:.5rem;text-align:center}
 .nm-team{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:0}
@@ -586,7 +587,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 <main>
   <section class="tpanel active" id="panel-prehled" role="tabpanel">
     <div class="wrap">
-      <p class="stitle">⏭️ Další zápas</p>
+      <p class="stitle">⏭️ Zápasy</p>
       <div id="nextMatch"></div>
 
       <p class="stitle" style="margin-top:1.75rem">🏠 Přehled</p>
@@ -662,7 +663,8 @@ const STADIUM_OFFSETS = {
 
 let players    = [];
 let gamesCache = [];
-let nmCurrentId = null; // id of the game currently shown in the "Další zápas" carousel
+let nmCurrentId = null; // id of the game currently shown in the "Zápasy" carousel
+let nmUserNavigated = false; // becomes true once the user manually changes the card
 
 /* ── Tab navigation ──────────────────────────────────── */
 document.querySelectorAll('.tbtn').forEach(btn => {
@@ -1413,11 +1415,14 @@ function buildConsensus(game, buckets, n, home, away) {
   return `⚖️ Mírná převaha – ${maxPct} % hráčů věří ${favLabel}.`;
 }
 
-/* ── "Další zápas" carousel ────────────────────────────────────
+/* ── "Zápasy" carousel ──────────────────────────────────────────
    Shows one match card at a time, navigable by arrows/swipe.
    Default: the nearest unplayed match, or the last played one
-   if the whole tournament is over. Position persists (nmCurrentId)
-   across re-renders triggered by the live API overlay. */
+   if the whole tournament is over. As long as the user hasn't
+   navigated manually, this default is recomputed on every
+   re-render (e.g. the live API overlay), so it keeps following
+   the actual "next match" as results come in. Once the user
+   navigates, their position is preserved across re-renders. */
 function renderNextMatch() {
   const el = document.getElementById('nextMatch');
   const games = sortByKickoff(gamesCache);
@@ -1426,7 +1431,7 @@ function renderNextMatch() {
     return;
   }
 
-  if (nmCurrentId == null || !games.some(g => g.id === nmCurrentId)) {
+  if (!nmUserNavigated || nmCurrentId == null || !games.some(g => g.id === nmCurrentId)) {
     const idx = games.findIndex(g => !g._fin);
     nmCurrentId = (idx === -1 ? games[games.length - 1] : games[idx]).id;
   }
@@ -1437,6 +1442,7 @@ function renderNextMatch() {
 function nmNavigate(el, games, idx, delta) {
   const newIdx = idx + delta;
   if (newIdx < 0 || newIdx >= games.length) return;
+  nmUserNavigated = true;
   nmCurrentId = games[newIdx].id;
   renderMatchCard(el, games, newIdx);
 }
@@ -1446,10 +1452,13 @@ function renderMatchCard(el, games, idx) {
   const home = displayTeamName(game._home || 'TBD');
   const away = displayTeamName(game._away || 'TBD');
   const finished = game._fin && game._hs != null && game._as != null;
+  const isNext   = !finished && idx === games.findIndex(g => !g._fin);
 
   const badge = finished
     ? '<span class="nm-badge nm-badge-done">✅ Odehráno</span>'
-    : '<span class="nm-badge nm-badge-pending">⏳ Čeká se</span>';
+    : isNext
+      ? '<span class="nm-badge nm-badge-next">🔥 Další zápas</span>'
+      : '<span class="nm-badge nm-badge-pending">⏳ Čeká se</span>';
 
   const middle = finished
     ? `<div class="nm-score">${game._hs} : ${game._as}</div>`
