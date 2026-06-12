@@ -1261,11 +1261,11 @@ function renderLastMatchCard(g) {
   });
   const title = `⚽ Poslední zápas: ${g._home} ${g._hs}:${g._as} ${g._away}`;
   const sub = (exactNames.length
-      ? `🎯 Přesný tip (${exactNames.length}): ${listNames(exactNames)}`
+      ? `🎯 <strong>Přesný tip (${exactNames.length})</strong>: ${listNames(exactNames)}`
       : `🎯 Přesný tip nikdo neměl.`)
     + '<br>' +
     (correctNames.length
-      ? `✓ Správný výsledek navíc: ${listNames(correctNames)}`
+      ? `✓ <strong>Správný výsledek navíc</strong>: ${listNames(correctNames)}`
       : `✓ Nikdo další nemá ani správný výsledek.`);
   return newsCard('⚽', title, sub);
 }
@@ -1285,7 +1285,7 @@ function renderCrowdWisdomCard(g) {
   const pct  = Math.round(tally[majority] / total * 100);
   const hit  = majority === actual;
   const title = hit ? '🧠 Kolektivní mozek měl pravdu' : '🧠 Kolektivní mozek se spletl';
-  const sub = `${pct} % hráčů (${tally[majority]}/${total}) tipovalo ${label(majority)}`
+  const sub = `<strong>${pct} % hráčů (${tally[majority]}/${total})</strong> tipovalo ${label(majority)}`
     + (hit ? ' – a vyšlo to!' : `, ale skutečnost byla jiná (${g._home} ${g._hs}:${g._as} ${g._away}).`);
   return newsCard(hit ? '🧠' : '🤔', title, sub);
 }
@@ -1302,7 +1302,7 @@ function renderBoldestCard(roundGames) {
   });
   if (!best) return '';
   const title = '🎲 Nejodvážnější tip kola';
-  const sub = `${best.name} vsadil na ${best.pred.home}:${best.pred.away} v zápase ${best.g._home} vs ${best.g._away} – ${best.tot} gólů celkem!`;
+  const sub = `${best.name} vsadil na ${best.pred.home}:${best.pred.away} v zápase ${best.g._home} vs ${best.g._away} – <strong>${best.tot} gólů celkem</strong>!`;
   return newsCard('🎲', title, sub);
 }
 
@@ -1320,7 +1320,7 @@ function renderOracleCard(roundGames) {
   if (best === 0) return newsCard('🔮', '🔮 Věštec kola', 'V tomto kole nikdo netrefil přesné skóre.');
   const names = listNames(tied.map(p => p.name));
   const plur = best === 1 ? 'přesný tip' : 'přesné tipy';
-  return newsCard('🔮', '🔮 Věštec kola', `${names} ${tied.length > 1 ? 'měli' : 'měl'} ${best} ${plur} v posledním kole!`);
+  return newsCard('🔮', '🔮 Věštec kola', `${names} ${tied.length > 1 ? 'měli' : 'měl'} <strong>${best} ${plur} v posledním kole</strong>!`);
 }
 
 /* Unlucky of the round: closest misses (off by exactly 1 goal in total) */
@@ -1349,7 +1349,7 @@ function renderUnluckyCard(roundGames) {
       const names = listNames(tied);
       const verb  = tied.length > 1 ? 'byli' : 'byl';
       const times = roundGames.length > 1 ? ` (${n}× v tomto kole)` : '';
-      return `${names} ${verb} jen o gól od přesného tipu${times}.`;
+      return `${names} <strong>${verb} jen o gól od přesného tipu${times}</strong>.`;
     });
 
   return newsCard('😬', '😬 Smolař kola', sentences.join(' '));
@@ -1373,7 +1373,7 @@ function renderBiggestJumpCard(rounds) {
   const names = listNames(bestNames);
   const verb  = bestNames.length > 1 ? 'poskočili' : 'poskočil';
   const unit  = bestDiff === 1 ? 'místo' : 'míst';
-  return newsCard('📈', '📈 Největší skok v pořadí', `${names} ${verb} o ${bestDiff} ${unit} nahoru po posledním kole.`);
+  return newsCard('📈', '📈 Největší skok v pořadí', `${names} <strong>${verb} o ${bestDiff} ${unit} nahoru</strong> po posledním kole.`);
 }
 
 /* ── Poll for a match: who's predicting what ─────────────────── */
