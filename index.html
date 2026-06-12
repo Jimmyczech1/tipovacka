@@ -248,6 +248,73 @@ a{color:inherit;text-decoration:none}
 .emsg{text-align:center;padding:2rem 1rem;color:var(--mut);font-size:.88rem}
 
 /* ═══════════════════════════════════════════════════════
+   PŘEHLED – NEWSFEED
+═══════════════════════════════════════════════════════ */
+.news-list{display:flex;flex-direction:column;gap:.65rem}
+.news{
+  background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);
+  box-shadow:var(--s1);padding:.85rem 1rem;
+  display:flex;gap:.75rem;align-items:flex-start;
+}
+.news-ic{font-size:1.5rem;line-height:1.3;flex-shrink:0}
+.news-body{flex:1;min-width:0}
+.news-title{font-weight:700;margin-bottom:.2rem;font-size:.95rem;color:var(--gd)}
+.news-sub{font-size:.83rem;color:var(--mut);line-height:1.5}
+
+/* ═══════════════════════════════════════════════════════
+   PŘEHLED – FORMA HRÁČŮ
+═══════════════════════════════════════════════════════ */
+.form-hint{font-size:.78rem;color:var(--mut);margin-bottom:.6rem}
+.form-list{display:flex;flex-direction:column;gap:.4rem}
+.form-row{
+  display:flex;align-items:center;gap:.6rem;
+  background:var(--sur);border:1px solid var(--brd);border-radius:var(--rsm);
+  padding:.5rem .75rem;font-size:.85rem;
+}
+.form-rank{font-weight:700;color:var(--mut);width:1.8rem;flex-shrink:0;text-align:center}
+.form-name{flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.form-dots{display:flex;gap:4px;flex-shrink:0}
+.fdot{
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;flex-shrink:0;
+}
+.fdot.ex{background:#d4edda;color:#155724}
+.fdot.co{background:#fff3cd;color:#856404}
+.fdot.wr{background:#f8d7da;color:#721c24}
+.form-pts{font-weight:700;color:var(--gd);min-width:2.6rem;text-align:right;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════
+   PŘEHLED – GRAF VÝVOJE BODŮ
+═══════════════════════════════════════════════════════ */
+.chart-card{
+  background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);
+  box-shadow:var(--s1);padding:1rem;
+}
+.chart-card svg{display:block;width:100%;height:auto}
+.chart-legend{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin-top:.8rem;font-size:.78rem;color:var(--mut)}
+.chart-legend-item{display:flex;align-items:center;gap:5px}
+.chart-sw{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════
+   HLAVA NA HLAVU (Tipy hráčů)
+═══════════════════════════════════════════════════════ */
+.h2h{
+  background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);
+  box-shadow:var(--s1);padding:.85rem 1rem;margin-bottom:1rem;
+  font-size:.85rem;
+}
+.h2h-title{font-weight:700;color:var(--gd);margin-bottom:.4rem}
+.h2h-bar{display:flex;align-items:center;gap:2px;margin-top:.5rem;height:8px}
+.h2h-seg{height:8px;border-radius:4px}
+
+/* ═══════════════════════════════════════════════════════
+   TÝMOVÁ FORMA (Vítěz MS)
+═══════════════════════════════════════════════════════ */
+.team-form{display:flex;gap:3px}
+.tform-dot{width:16px;height:16px;border-radius:3px;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* ═══════════════════════════════════════════════════════
    FOOTER
 ═══════════════════════════════════════════════════════ */
 footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;border-top:1px solid var(--brd);margin-top:1.5rem}
@@ -305,7 +372,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
   /* Status bar */
   .sbar{flex-direction:column;align-items:flex-start;padding:.4rem .8rem;gap:.2rem;font-size:.73rem}
 
-  /* Tab nav – 2×2 grid on very small screens */
+  /* Tab nav – 2×2 grid on very small screens (5th tab spans full width) */
   .tnav{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -314,6 +381,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
     gap:1px;
     background:var(--brd);
   }
+  .tbtn:last-child{grid-column:1/-1}
   .tbtn{
     border-bottom:none;
     border:none;
@@ -421,14 +489,28 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 </div>
 
 <nav class="tnav" role="tablist">
-  <button class="tbtn active" data-tab="poradi"     role="tab" aria-selected="true">🏆 Aktuální pořadí</button>
+  <button class="tbtn active" data-tab="prehled"    role="tab" aria-selected="true">🏠 Přehled</button>
+  <button class="tbtn"        data-tab="poradi"     role="tab">🏆 Aktuální pořadí</button>
   <button class="tbtn"        data-tab="tipy"       role="tab">📋 Tipy hráčů</button>
   <button class="tbtn"        data-tab="vitez"      role="tab">🌍 Vítěz MS</button>
   <button class="tbtn"        data-tab="statistiky" role="tab">📊 Statistiky</button>
 </nav>
 
 <main>
-  <section class="tpanel active" id="panel-poradi" role="tabpanel">
+  <section class="tpanel active" id="panel-prehled" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">🏠 Přehled</p>
+      <div id="newsfeed" class="news-list"></div>
+
+      <p class="stitle" style="margin-top:1.75rem">🔥 Forma hráčů</p>
+      <div id="formGuide"></div>
+
+      <p class="stitle" style="margin-top:1.75rem">📈 Vývoj bodů v čase</p>
+      <div id="pointsChart"></div>
+    </div>
+  </section>
+
+  <section class="tpanel" id="panel-poradi" role="tabpanel">
     <div class="wrap">
       <p class="stitle">🏆 Aktuální pořadí</p>
       <div class="podium" id="podium"></div>
@@ -447,6 +529,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
         <button class="btn"  id="btnCompare">Zobrazit</button>
         <button class="btn btn2" id="btnAll">Zobrazit všechny</button>
       </div>
+      <div id="h2h"></div>
       <div class="tsw">
         <table id="tipsTable">
           <thead><tr id="tipsHdr"></tr></thead>
@@ -555,13 +638,13 @@ function formatKickoff(ko, stadId) {
 }
 
 /* ── Score calculation ───────────────────────────────── */
-function calculateScores(finished) {
+function computeBoard(finished) {
   const results = {};
   finished.forEach(g => {
     results[g.id] = { home: g._hs, away: g._as };
   });
 
-  const board = players.map(p => {
+  return players.map(p => {
     let pts = 0, exact = 0, correct = 0;
     Object.keys(results).forEach(id => {
       const r = results[id], pred = p.predictions[id];
@@ -575,8 +658,16 @@ function calculateScores(finished) {
     return { name: p.name, pts: pts + cb, exact, correct, cb, champ: p.predictedChampion, total,
              pct: total > 0 ? Math.round(correct / total * 100) : 0 };
   });
+}
 
+function computeBoardSorted(finished) {
+  const board = computeBoard(finished);
   board.sort((a, b) => b.pts - a.pts || b.exact - a.exact);
+  return board;
+}
+
+function calculateScores(finished) {
+  const board = computeBoardSorted(finished);
   renderLeaderboard(board);
   renderStats(board, finished);
 }
@@ -637,6 +728,43 @@ function topTied(arr, key) {
   if (!arr.length) return { best: 0, players: [] };
   const best = Math.max(...arr.map(p => p[key]));
   return { best, players: arr.filter(p => p[key] === best) };
+}
+
+/* ── Helper: "YYYY-MM-DD" date key from a kickoff string ────────
+   Accepts both "2026-06-11 13:00" and "06/11/2026 13:00". */
+function koDateKey(ko) {
+  if (!ko) return '';
+  const [dp] = ko.trim().split(' ');
+  if (dp.includes('-')) return dp;
+  const [mo, da, yr] = dp.split('/');
+  return `${yr}-${mo.padStart(2,'0')}-${da.padStart(2,'0')}`;
+}
+
+/* ── Helper: finished group-stage games, sorted by kickoff ──────
+   This is the basis for "rounds", form guide and the points chart. */
+function getFinishedGroupGames() {
+  return sortByKickoff(gamesCache.filter(g => g.type === 'group' && g._fin && g._hs != null));
+}
+
+/* ── Helper: group finished games into "rounds" by kickoff date ─
+   Returns [{ date:'YYYY-MM-DD', games:[...] }, ...] in chronological order. */
+function computeRounds() {
+  const finished = getFinishedGroupGames();
+  const rounds = [];
+  finished.forEach(g => {
+    const key = koDateKey(g._ko);
+    let r = rounds[rounds.length - 1];
+    if (!r || r.date !== key) { r = { date: key, games: [] }; rounds.push(r); }
+    r.games.push(g);
+  });
+  return rounds;
+}
+
+/* ── Helper: join a list of names, truncating long lists ────────
+   e.g. "Adam, Tomáš, Pavel a 11 dalších" */
+function listNames(arr, max = 6) {
+  if (arr.length <= max) return arr.join(', ');
+  return arr.slice(0, max).join(', ') + ` a ${arr.length - max} dalších`;
 }
 
 /* ── Render: Leaderboard ───────────────────────────────────────
@@ -766,11 +894,13 @@ function buildTipsTable(games, showPlayers) {
 
 function renderAllTips() {
   buildTipsTable(gamesCache.filter(g => g.type === 'group'), players);
+  const h2hEl = document.getElementById('h2h'); if (h2hEl) h2hEl.innerHTML = '';
 }
 function renderComparison(n1, n2) {
   const p1 = players.find(p => p.name === n1); if (!p1) return;
   const p2 = n2 ? players.find(p => p.name === n2) : null;
   buildTipsTable(gamesCache.filter(g => g.type === 'group'), p2 ? [p1, p2] : [p1]);
+  renderH2H(p1, p2);
 }
 
 /* ── Render: Champion grid ───────────────────────────── */
@@ -833,7 +963,8 @@ function renderChampionGrid() {
   });
   Object.keys(stats).sort((a,b) => stats[b].count - stats[a].count).forEach(team => {
     const { count, names } = stats[team];
-    const rows = (teamGames[team] || []).map(g => {
+    const games = teamGames[team] || [];
+    const rows = games.map(g => {
       const isH = g._home === team, opp = isH ? g._away : g._home;
       let sh = '';
       if (g._fin && g._hs != null) {
@@ -845,10 +976,25 @@ function renderChampionGrid() {
       }
       return `<div class="cmrow"><span class="t">vs ${opp}</span>${sh}</div>`;
     }).join('');
+
+    // Form: last up-to-3 finished results, oldest → newest
+    const formDots = games.filter(g => g._fin && g._hs != null).slice(-3).map(g => {
+      const isH = g._home === team, ts = isH ? g._hs : g._as, os = isH ? g._as : g._hs;
+      const cls = ts > os ? 'sw' : ts < os ? 'sl' : 'sd';
+      const letter = ts > os ? 'V' : ts < os ? 'P' : 'R';
+      return `<span class="tform-dot ${cls}" title="${g._home} ${g._hs}:${g._as} ${g._away}">${letter}</span>`;
+    }).join('');
+
     const votes = count === 1 ? '1 tip' : count < 5 ? `${count} tipy` : `${count} tipů`;
     const card = document.createElement('div'); card.className = 'ccard';
     card.innerHTML = `
-      <div class="cch"><span class="cct">${teamFlag(team)} ${team}</span><span class="ccv">${votes}</span></div>
+      <div class="cch">
+        <span class="cct">${teamFlag(team)} ${team}</span>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="ccv">${votes}</span>
+          ${formDots ? `<span class="team-form">${formDots}</span>` : ''}
+        </div>
+      </div>
       <div class="ccb">
         <div class="ccp">${names.join(', ')}</div>
         ${rows ? `<div class="cmlist">${rows}</div>` : ''}
@@ -959,6 +1105,283 @@ function renderStats(board, finished) {
   </div>`;
 }
 
+/* ══════════════════════════════════════════════════════
+   PŘEHLED – NEWSFEED, FORMA, GRAF VÝVOJE BODŮ
+═══════════════════════════════════════════════════════ */
+
+function newsCard(icon, title, sub) {
+  return `<div class="news"><div class="news-ic">${icon}</div><div class="news-body"><div class="news-title">${title}</div><div class="news-sub">${sub}</div></div></div>`;
+}
+
+/* Last finished match: who nailed the exact score, who got the outcome right */
+function renderLastMatchCard(g) {
+  const exactNames = [], correctNames = [];
+  players.forEach(p => {
+    const pred = p.predictions[g.id]; if (!pred) return;
+    if (pred.home === g._hs && pred.away === g._as) exactNames.push(p.name);
+    else if (outcome(pred.home, pred.away) === outcome(g._hs, g._as)) correctNames.push(p.name);
+  });
+  const title = `⚽ Poslední zápas: ${g._home} ${g._hs}:${g._as} ${g._away}`;
+  const sub = (exactNames.length
+      ? `🎯 Přesný tip (${exactNames.length}): ${listNames(exactNames)}`
+      : `🎯 Přesný tip nikdo neměl.`)
+    + '<br>' +
+    (correctNames.length
+      ? `✓ Správný výsledek navíc: ${listNames(correctNames)}`
+      : `✓ Nikdo další nemá ani správný výsledek.`);
+  return newsCard('⚽', title, sub);
+}
+
+/* Crowd wisdom: what did the majority predict for the last match, and were they right? */
+function renderCrowdWisdomCard(g) {
+  const tally = { '1': 0, '0': 0, '2': 0 };
+  let total = 0;
+  players.forEach(p => {
+    const pred = p.predictions[g.id]; if (!pred) return;
+    tally[outcome(pred.home, pred.away)]++; total++;
+  });
+  if (!total) return '';
+  const actual   = outcome(g._hs, g._as);
+  const majority = Object.keys(tally).reduce((a, b) => tally[a] >= tally[b] ? a : b);
+  const label = o => o === '1' ? `výhru ${g._home}` : o === '2' ? `výhru ${g._away}` : 'remízu';
+  const pct  = Math.round(tally[majority] / total * 100);
+  const hit  = majority === actual;
+  const title = hit ? '🧠 Kolektivní mozek měl pravdu' : '🧠 Kolektivní mozek se spletl';
+  const sub = `${pct} % hráčů (${tally[majority]}/${total}) tipovalo ${label(majority)}`
+    + (hit ? ' – a vyšlo to!' : `, ale skutečnost byla jiná (${g._home} ${g._hs}:${g._as} ${g._away}).`);
+  return newsCard(hit ? '🧠' : '🤔', title, sub);
+}
+
+/* Boldest tip of the round: prediction with the most total goals */
+function renderBoldestCard(roundGames) {
+  let best = null;
+  players.forEach(p => {
+    roundGames.forEach(g => {
+      const pred = p.predictions[g.id]; if (!pred) return;
+      const tot = pred.home + pred.away;
+      if (!best || tot > best.tot) best = { tot, name: p.name, pred, g };
+    });
+  });
+  if (!best) return '';
+  const title = '🎲 Nejodvážnější tip kola';
+  const sub = `${best.name} vsadil na ${best.pred.home}:${best.pred.away} v zápase ${best.g._home} vs ${best.g._away} – ${best.tot} gólů celkem!`;
+  return newsCard('🎲', title, sub);
+}
+
+/* Oracle of the round: most exact scores in the last round */
+function renderOracleCard(roundGames) {
+  const counts = players.map(p => {
+    let exact = 0;
+    roundGames.forEach(g => {
+      const pred = p.predictions[g.id];
+      if (pred && pred.home === g._hs && pred.away === g._as) exact++;
+    });
+    return { name: p.name, exact };
+  });
+  const { best, players: tied } = topTied(counts, 'exact');
+  if (best === 0) return newsCard('🔮', '🔮 Věštec kola', 'V tomto kole nikdo netrefil přesné skóre.');
+  const names = listNames(tied.map(p => p.name));
+  const plur = best === 1 ? 'přesný tip' : 'přesné tipy';
+  return newsCard('🔮', '🔮 Věštec kola', `${names} ${tied.length > 1 ? 'měli' : 'měl'} ${best} ${plur} v posledním kole!`);
+}
+
+/* Unlucky of the round: closest misses (off by exactly 1 goal in total) */
+function renderUnluckyCard(roundGames) {
+  const counts = players.map(p => {
+    let near = 0;
+    roundGames.forEach(g => {
+      const pred = p.predictions[g.id]; if (!pred) return;
+      const exact = pred.home === g._hs && pred.away === g._as;
+      const diff  = Math.abs(pred.home - g._hs) + Math.abs(pred.away - g._as);
+      if (!exact && diff === 1) near++;
+    });
+    return { name: p.name, near };
+  });
+  const { best, players: tied } = topTied(counts, 'near');
+  if (best === 0) return '';
+  const names = listNames(tied.map(p => p.name));
+  return newsCard('😬', '😬 Smolař kola', `${names} ${tied.length > 1 ? 'byli' : 'byl'} jen o gól od přesného tipu (${best}×).`);
+}
+
+/* Biggest jump in the standings compared to before the last round */
+function renderBiggestJumpCard(rounds) {
+  if (rounds.length < 2) return '';
+  const before = assignRanks(computeBoardSorted(rounds.slice(0, -1).flatMap(r => r.games)));
+  const after  = assignRanks(computeBoardSorted(rounds.flatMap(r => r.games)));
+  const beforeRank = {};
+  before.forEach(p => { beforeRank[p.name] = p.rank; });
+
+  let bestDiff = 0, bestNames = [];
+  after.forEach(p => {
+    const diff = (beforeRank[p.name] ?? p.rank) - p.rank;
+    if (diff > bestDiff) { bestDiff = diff; bestNames = [p.name]; }
+    else if (diff === bestDiff && diff > 0) bestNames.push(p.name);
+  });
+  if (bestDiff <= 0) return '';
+  const names = listNames(bestNames);
+  const verb  = bestNames.length > 1 ? 'poskočili' : 'poskočil';
+  const unit  = bestDiff === 1 ? 'místo' : 'míst';
+  return newsCard('📈', '📈 Největší skok v pořadí', `${names} ${verb} o ${bestDiff} ${unit} nahoru po posledním kole.`);
+}
+
+function renderNewsfeed() {
+  const el = document.getElementById('newsfeed');
+  const rounds = computeRounds();
+  if (!rounds.length) {
+    el.innerHTML = newsCard('⏳', 'Zatím se nehrálo', 'Jakmile proběhne první zápas, objeví se tady zajímavosti a statistiky kola.');
+    return;
+  }
+
+  const lastRound = rounds[rounds.length - 1];
+  const lastGame  = lastRound.games[lastRound.games.length - 1];
+
+  el.innerHTML =
+    renderLastMatchCard(lastGame) +
+    renderCrowdWisdomCard(lastGame) +
+    renderBoldestCard(lastRound.games) +
+    renderOracleCard(lastRound.games) +
+    renderUnluckyCard(lastRound.games) +
+    renderBiggestJumpCard(rounds);
+}
+
+/* ── Forma hráčů: last few results as colored dots ──────────── */
+function renderFormGuide() {
+  const el = document.getElementById('formGuide');
+  const finished = getFinishedGroupGames();
+  if (!finished.length) {
+    el.innerHTML = '<p class="emsg">⏳ Forma se zobrazí po odehrání prvních zápasů.</p>';
+    return;
+  }
+  const last  = finished.slice(-5);
+  const board = assignRanks(computeBoardSorted(gamesCache.filter(g => isFin(g))));
+
+  const hint = `<p class="form-hint">Posledních ${last.length} odehraných ${last.length === 1 ? 'zápas' : 'zápasy'} – 🟩 přesný tip · 🟨 správný výsledek · 🟥 mimo</p>`;
+
+  const rows = board.map(p => {
+    const pred = players.find(pl => pl.name === p.name).predictions;
+    const dots = last.map(g => {
+      const pr = pred[g.id];
+      if (!pr) return `<span class="fdot wr">–</span>`;
+      const exact   = pr.home === g._hs && pr.away === g._as;
+      const correct = outcome(pr.home, pr.away) === outcome(g._hs, g._as);
+      const cls = exact ? 'ex' : correct ? 'co' : 'wr';
+      const ic  = exact ? '★' : correct ? '✓' : '✕';
+      return `<span class="fdot ${cls}" title="${g._home} ${g._hs}:${g._as} ${g._away} – tip ${pr.home}:${pr.away}">${ic}</span>`;
+    }).join('');
+    return `<div class="form-row"><span class="form-rank">${p.rank}.</span><span class="form-name">${p.name}</span><span class="form-dots">${dots}</span><span class="form-pts">${p.pts} b</span></div>`;
+  }).join('');
+
+  el.innerHTML = hint + `<div class="form-list">${rows}</div>`;
+}
+
+/* ── Graf vývoje bodů: cumulative match points per finished game ─── */
+const CHART_COLORS = ['#1a7a42', '#f4b942', '#3a7bd5', '#c0392b', '#8e44ad', '#16a085', '#d35400', '#2c3e50'];
+
+function computePointsSeries() {
+  const finished = getFinishedGroupGames();
+  const series = {};
+  const cum = {};
+  players.forEach(p => { series[p.name] = [0]; cum[p.name] = 0; });
+  finished.forEach(g => {
+    players.forEach(p => {
+      const pred = p.predictions[g.id];
+      let pts = 0;
+      if (pred) {
+        if (outcome(pred.home, pred.away) === outcome(g._hs, g._as)) pts += BASE_PTS;
+        if (pred.home === g._hs && pred.away === g._as)               pts += BONUS_PTS;
+      }
+      cum[p.name] += pts;
+      series[p.name].push(cum[p.name]);
+    });
+  });
+  return { series, n: finished.length };
+}
+
+function renderPointsChart() {
+  const el = document.getElementById('pointsChart');
+  const { series, n } = computePointsSeries();
+  if (n < 1) {
+    el.innerHTML = '<p class="emsg">⏳ Graf se zobrazí po odehrání prvních zápasů.</p>';
+    return;
+  }
+
+  const names  = Object.keys(series);
+  const maxPts = Math.max(1, ...names.map(name => Math.max(...series[name])));
+  const W = 800, H = 320, PAD = 32;
+  const xStep  = (W - PAD * 2) / n;
+  const xScale = i => PAD + i * xStep;
+  const yScale = v => H - PAD - (v / maxPts) * (H - PAD * 2);
+
+  // Highlight the top players by current total; everyone else is a faint background line
+  const topNames = names.slice().sort((a, b) => series[b][n] - series[a][n]).slice(0, 6);
+  const colorOf  = {};
+  topNames.forEach((name, i) => { colorOf[name] = CHART_COLORS[i % CHART_COLORS.length]; });
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}">`;
+  // Gridlines + Y-axis labels
+  for (let gy = 0; gy <= 4; gy++) {
+    const yv = maxPts * gy / 4;
+    const y  = yScale(yv);
+    svg += `<line x1="${PAD}" y1="${y}" x2="${W - PAD}" y2="${y}" stroke="#e0e6e2" stroke-width="1"/>`;
+    svg += `<text x="2" y="${y + 4}" font-size="10" fill="#607068">${Math.round(yv)}</text>`;
+  }
+  // Background lines for everyone else
+  names.forEach(name => {
+    if (topNames.includes(name)) return;
+    const pts = series[name].map((v, i) => `${xScale(i)},${yScale(v)}`).join(' ');
+    svg += `<polyline points="${pts}" fill="none" stroke="#cdd7d1" stroke-width="1.2" opacity="0.7"/>`;
+  });
+  // Highlighted top players on top
+  topNames.forEach(name => {
+    const pts = series[name].map((v, i) => `${xScale(i)},${yScale(v)}`).join(' ');
+    svg += `<polyline points="${pts}" fill="none" stroke="${colorOf[name]}" stroke-width="2.5"/>`;
+  });
+  svg += `</svg>`;
+
+  const legend = topNames.map(name =>
+    `<div class="chart-legend-item"><span class="chart-sw" style="background:${colorOf[name]}"></span>${name} (${series[name][n]} b)</div>`
+  ).join('');
+
+  el.innerHTML = svg
+    + `<div class="chart-legend">${legend}</div>`
+    + `<p class="form-hint" style="margin-top:.6rem">Osa X = pořadí odehraných zápasů (1–${n}), osa Y = body ze zápasů. Ostatní hráči jsou šedě na pozadí.</p>`;
+}
+
+/* ── Hlava na hlavu: head-to-head summary for two compared players ── */
+function renderH2H(p1, p2) {
+  const el = document.getElementById('h2h');
+  if (!el) return;
+  if (!p2) { el.innerHTML = ''; return; }
+  const finished = getFinishedGroupGames();
+  if (!finished.length) { el.innerHTML = ''; return; }
+
+  const pointsFor = (p, g) => {
+    const pred = p.predictions[g.id]; if (!pred) return 0;
+    let v = 0;
+    if (outcome(pred.home, pred.away) === outcome(g._hs, g._as)) v += BASE_PTS;
+    if (pred.home === g._hs && pred.away === g._as)               v += BONUS_PTS;
+    return v;
+  };
+
+  let w1 = 0, w2 = 0, tie = 0;
+  finished.forEach(g => {
+    const v1 = pointsFor(p1, g), v2 = pointsFor(p2, g);
+    if (v1 > v2) w1++; else if (v2 > v1) w2++; else tie++;
+  });
+  const total = finished.length;
+  const pct1  = w1 / total * 100, pct2 = w2 / total * 100, pctT = 100 - pct1 - pct2;
+
+  el.innerHTML = `<div class="h2h">
+    <div class="h2h-title">⚔️ ${p1.name} vs ${p2.name} – z ${total} odehraných zápasů</div>
+    <div>${p1.name} lepší tip: <strong>${w1}×</strong> · shoda: <strong>${tie}×</strong> · ${p2.name} lepší tip: <strong>${w2}×</strong></div>
+    <div class="h2h-bar">
+      <div class="h2h-seg" style="flex:${pct1 || 0.0001};background:#1a7a42"></div>
+      <div class="h2h-seg" style="flex:${pctT || 0.0001};background:#e0e6e2"></div>
+      <div class="h2h-seg" style="flex:${pct2 || 0.0001};background:#3a7bd5"></div>
+    </div>
+  </div>`;
+}
+
 /* ── Data loading ────────────────────────────────────── */
 async function loadPlayers() {
   const resp = await fetch('players_predictions.json');
@@ -1005,6 +1428,9 @@ function renderAll() {
   calculateScores(fin);
   renderChampionGrid();
   renderAllTips();
+  renderNewsfeed();
+  renderFormGuide();
+  renderPointsChart();
 }
 
 function populateSelects() {
