@@ -414,6 +414,8 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 .ubadge-auto  {background:rgba(255,255,255,.25);color:#fff}
 .ubadge-manual{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
 .ubadge-live  {background:#f4b942;color:#1a2e1a}
+.ubadge-sync  {background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);animation:ubadge-pulse 1.2s ease-in-out infinite}
+@keyframes ubadge-pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ═══════════════════════════════════════════════════════
    RESPONSIVE  ≤ 768px
@@ -665,6 +667,9 @@ let players    = [];
 let gamesCache = [];
 let nmCurrentId = null; // id of the game currently shown in the "Zápasy" carousel
 let nmUserNavigated = false; // becomes true once the user manually changes the card
+
+let fallbackUpdateLabel = null; // { ts, source } from games.json – shown if live API fails
+let cachedLiveTs = null;        // ISO timestamp of a live snapshot (fresh or from localStorage)
 
 /* ── Tab navigation ──────────────────────────────────── */
 document.querySelectorAll('.tbtn').forEach(btn => {
@@ -1754,6 +1759,51 @@ async function loadPlayers() {
   players = await resp.json();
 }
 
+const LIVE_CACHE_KEY    = 'tipovacka_liveGames';
+const LIVE_CACHE_TS_KEY = 'tipovacka_liveGamesTs';
+
+// Formátuje "YYYY-MM-DD HH:MM" (z games.json) na "D.M.RRRR HH:MM".
+function formatUpdateTs(ts) {
+  try {
+    const [dp, tp] = ts.split(' ');
+    const [yr, mo, da] = dp.split('-').map(Number);
+    const d = new Date(yr, mo-1, da);
+    return d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'}).replace(/\s+/g,'') + (tp ? ' ' + tp : '');
+  } catch { return ts; }
+}
+
+function showUpdateBadge(label, badgeHtml) {
+  document.getElementById('lastUpdated').textContent = label;
+  document.getElementById('updateBadge').innerHTML   = badgeHtml;
+}
+
+// "Hledám čerstvější data…" – zobrazeno, dokud běží fetch na živé API.
+function showSyncingBadge() {
+  document.getElementById('updateBadge').innerHTML =
+    '<span class="ubadge ubadge-sync">🔄 synchronizace…</span>';
+}
+
+// Zobrazí nejlepší dostupná data: živou cache z dnešní návštěvy (pokud je),
+// jinak údaj z games.json (auto/manuální).
+function showFallbackBadge() {
+  if (cachedLiveTs) {
+    showUpdateBadge(
+      new Date(cachedLiveTs).toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'}),
+      '<span class="ubadge ubadge-live">⚡ live API (cache)</span>'
+    );
+    return;
+  }
+  if (fallbackUpdateLabel) {
+    const { ts, source } = fallbackUpdateLabel;
+    showUpdateBadge(
+      formatUpdateTs(ts),
+      source === 'auto'
+        ? '<span class="ubadge ubadge-auto">⚙ auto</span>'
+        : '<span class="ubadge ubadge-manual">✎ manuálně</span>'
+    );
+  }
+}
+
 async function loadGames() {
   try {
     const resp = await fetch('games.json');
@@ -1761,23 +1811,12 @@ async function loadGames() {
     const data = await resp.json();
     gamesCache = (data.games || data).map(normalizeGame);
 
-    // Zobraz čas poslední aktualizace + badge zdroje
     // Podporuje: starý klíč lastManualUpdate i nový lastUpdate + updateSource
     const ts     = data.lastUpdate || data.lastManualUpdate || '';
     const source = data.updateSource || 'manual'; // 'auto' | 'manual'
     if (ts) {
-      let label = ts;
-      try {
-        const [dp, tp] = ts.split(' ');
-        const [yr, mo, da] = dp.split('-').map(Number);
-        const d = new Date(yr, mo-1, da);
-        label = d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'}).replace(/\s+/g,'') + (tp ? ' ' + tp : '');
-      } catch { label = ts; }
-      document.getElementById('lastUpdated').textContent = label;
-      document.getElementById('updateBadge').innerHTML =
-        source === 'auto'
-          ? '<span class="ubadge ubadge-auto">⚙ auto</span>'
-          : '<span class="ubadge ubadge-manual">✎ manuálně</span>';
+      fallbackUpdateLabel = { ts, source };
+      showFallbackBadge();
     }
   } catch (err) {
     console.warn('Nelze načíst games.json:', err);
@@ -1807,37 +1846,68 @@ function populateSelects() {
   });
 }
 
-/* ── Live API overlay (tichý pokus na pozadí) ────────────────
-   Pokud worldcup26.ir odpoví, data se použijí POUZE V PAMĚTI.
-   games.json se z prohlížeče NIKDY nepřepíše.
-   Po refreshi stránky se vše vrátí na stav z games.json.      */
+/* ── Live API overlay ────────────────────────────────────────
+   Merguje data ze živého API do gamesCache POUZE V PAMĚTI – games.json
+   se z prohlížeče nikdy nepřepíše (o jeho aktuálnost se stará scheduled
+   GitHub Action). Poslední úspěšná odpověď se uloží do localStorage,
+   aby se při příští návštěvě dala zobrazit hned, bez čekání na fetch. */
+function mergeLiveGames(raw) {
+  const apiGames = raw.map(normalizeGame);
+
+  // Merge: manuálně odehrané zápasy mají vždy přednost před API
+  const localById = {};
+  gamesCache.forEach(g => { localById[g.id] = g; });
+  gamesCache = apiGames.map(ag => {
+    const local = localById[ag.id];
+    if (local && local._fin && !ag._fin) return local;
+    return ag;
+  });
+}
+
+// Při načtení stránky hned zobrazí poslední živá data z předchozí
+// návštěvy (pokud jsou z dnešního dne), než doběhne nový fetch.
+function applyCachedLiveGames() {
+  try {
+    const cachedRaw = localStorage.getItem(LIVE_CACHE_KEY);
+    const cachedTs  = localStorage.getItem(LIVE_CACHE_TS_KEY);
+    if (!cachedRaw || !cachedTs) return;
+    if (new Date(cachedTs).toDateString() !== new Date().toDateString()) return;
+
+    const raw = JSON.parse(cachedRaw);
+    if (!Array.isArray(raw) || !raw.length) return;
+
+    mergeLiveGames(raw);
+    cachedLiveTs = cachedTs;
+    showFallbackBadge();
+  } catch { /* poškozená cache – ignorujeme */ }
+}
+
 async function tryLiveAPI() {
+  showSyncingBadge();
   try {
     const r = await fetch('https://worldcup26.ir/get/games');
-    if (!r.ok) return;
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const data = await r.json();
     const raw  = (Array.isArray(data) ? data : data.games || []);
-    if (!raw.length) return;
+    if (!raw.length) throw new Error('Prázdná odpověď');
 
-    const apiGames = raw.map(normalizeGame);
-
-    // Merge: manuálně odehrané zápasy mají vždy přednost před API
-    const localById = {};
-    gamesCache.forEach(g => { localById[g.id] = g; });
-    gamesCache = apiGames.map(ag => {
-      const local = localById[ag.id];
-      if (local && local._fin && !ag._fin) return local;
-      return ag;
-    });
-
+    mergeLiveGames(raw);
     renderAll();
 
-    // Badge: live data jsou v paměti (žlutá)
-    document.getElementById('updateBadge').innerHTML =
-      '<span class="ubadge ubadge-live">⚡ live API</span>';
-    document.getElementById('lastUpdated').textContent =
-      new Date().toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
-  } catch { /* API nedostupné – games.json zůstává primární */ }
+    cachedLiveTs = new Date().toISOString();
+    showUpdateBadge(
+      new Date(cachedLiveTs).toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'}),
+      '<span class="ubadge ubadge-live">⚡ live API</span>'
+    );
+
+    try {
+      localStorage.setItem(LIVE_CACHE_KEY, JSON.stringify(raw));
+      localStorage.setItem(LIVE_CACHE_TS_KEY, cachedLiveTs);
+    } catch { /* localStorage nedostupné (např. private mode) */ }
+  } catch {
+    // API nedostupné – zobrazíme nejlepší dostupná data (cache, nebo games.json)
+    showFallbackBadge();
+  }
 }
 
 /* ── Event listeners ─────────────────────────────────── */
@@ -1854,6 +1924,7 @@ async function init() {
     await loadPlayers();
     await loadGames();
     populateSelects();
+    applyCachedLiveGames();
     renderAll();
     tryLiveAPI(); // tichá záloha na pozadí
   } catch (e) {
