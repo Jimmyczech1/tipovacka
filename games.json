@@ -21,9 +21,9 @@
       "awayTeam": "Czech Republic",
       "kickoff": "2026-06-11 20:00",
       "stadiumId": "2",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
       "id": "3",
@@ -33,9 +33,9 @@
       "awayTeam": "Bosnia and Herzegovina",
       "kickoff": "2026-06-12 15:00",
       "stadiumId": "12",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
       "id": "4",
@@ -45,9 +45,9 @@
       "awayTeam": "Paraguay",
       "kickoff": "2026-06-12 18:00",
       "stadiumId": "16",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 4,
+      "awayScore": 1
     },
     {
       "id": "5",
@@ -1249,5 +1249,7 @@
       "homeScore": null,
       "awayScore": null
     }
-  ]
+  ],
+  "lastUpdate": "2026-06-13 10:35",
+  "updateSource": "auto"
 }
