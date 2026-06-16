@@ -105,9 +105,9 @@
       "awayTeam": "Ecuador",
       "kickoff": "2026-06-14 19:00",
       "stadiumId": "10",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 0
     },
     {
       "id": "10",
@@ -117,9 +117,9 @@
       "awayTeam": "Curaçao",
       "kickoff": "2026-06-14 12:00",
       "stadiumId": "5",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 7,
+      "awayScore": 1
     },
     {
       "id": "11",
@@ -129,9 +129,9 @@
       "awayTeam": "Japan",
       "kickoff": "2026-06-14 15:00",
       "stadiumId": "4",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 2
     },
     {
       "id": "12",
@@ -141,9 +141,9 @@
       "awayTeam": "Tunisia",
       "kickoff": "2026-06-14 20:00",
       "stadiumId": "3",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 5,
+      "awayScore": 1
     },
     {
       "id": "13",
@@ -153,9 +153,9 @@
       "awayTeam": "New Zealand",
       "kickoff": "2026-06-15 18:00",
       "stadiumId": "16",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 2
     },
     {
       "id": "14",
@@ -165,9 +165,9 @@
       "awayTeam": "Cape Verde",
       "kickoff": "2026-06-15 12:00",
       "stadiumId": "7",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
       "id": "15",
@@ -177,9 +177,9 @@
       "awayTeam": "Egypt",
       "kickoff": "2026-06-15 12:00",
       "stadiumId": "14",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
       "id": "16",
@@ -189,9 +189,9 @@
       "awayTeam": "Uruguay",
       "kickoff": "2026-06-15 18:00",
       "stadiumId": "8",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
       "id": "17",
@@ -201,9 +201,9 @@
       "awayTeam": "Senegal",
       "kickoff": "2026-06-16 15:00",
       "stadiumId": "11",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 3,
+      "awayScore": 1
     },
     {
       "id": "18",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-06-14 12:54",
+  "lastUpdate": "2026-06-17 01:56",
   "updateSource": "auto"
 }
