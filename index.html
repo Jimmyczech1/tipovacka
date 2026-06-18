@@ -319,6 +319,9 @@ a{color:inherit;text-decoration:none}
 .nm-stat{font-size:.83rem;color:var(--mut);margin-top:.5rem;line-height:1.6}
 .nm-stat strong{color:var(--gd)}
 .nm-consensus{font-size:.85rem;font-weight:700;color:var(--gd);margin-top:.5rem}
+.nm-insights{margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--brd);display:flex;flex-direction:column;gap:.35rem}
+.nm-insight{font-size:.82rem;color:var(--mut);line-height:1.5}
+.nm-insight strong{color:var(--txt)}
 @media(max-width:480px){
   .nm-flag{font-size:2.1rem}
   .nm-name{font-size:.82rem}
@@ -782,27 +785,15 @@ function calculateScores(finished) {
    Parses both "2026-06-11 13:00" and "06/11/2026 13:00".
    Uses explicit UTC construction to avoid browser timezone quirks. */
 function sortByKickoff(games) {
-  function toMs(g) {
-    const ko = (g._ko || '').trim();
-    if (!ko) return 0;
-    try {
-      if (/^\d{4}-/.test(ko)) {
-        // "YYYY-MM-DD HH:MM"
-        const [dp, tp = '00:00'] = ko.split(' ');
-        const [yr, mo, da] = dp.split('-').map(Number);
-        const [hr, mi]     = tp.split(':').map(Number);
-        // Treat kickoff as local US time; for sorting purposes UTC is fine
-        return Date.UTC(yr, mo - 1, da, hr, mi);
-      } else {
-        // "MM/DD/YYYY HH:MM"
-        const [dp, tp = '00:00'] = ko.split(' ');
-        const [mo, da, yr] = dp.split('/').map(Number);
-        const [hr, mi]     = tp.split(':').map(Number);
-        return Date.UTC(yr, mo - 1, da, hr, mi);
-      }
-    } catch { return 0; }
-  }
-  return [...games].sort((a, b) => toMs(a) - toMs(b));
+  // Use kickoffInstant so the stadium timezone offset is factored in —
+  // games at the same raw local time (e.g. "12:00") in different US cities
+  // will otherwise sort identically even though they kick off at different
+  // times in Central European time.
+  return [...games].sort((a, b) => {
+    const ta = kickoffInstant(a._ko, a._stad)?.getTime() ?? 0;
+    const tb = kickoffInstant(b._ko, b._stad)?.getTime() ?? 0;
+    return ta - tb;
+  });
 }
 
 /* ── Helper: competitive (Olympic) ranking ─────────────────────
@@ -1259,7 +1250,7 @@ function renderLastMatchCard(g) {
     if (pred.home === g._hs && pred.away === g._as) exactNames.push(p.name);
     else if (outcome(pred.home, pred.away) === outcome(g._hs, g._as)) correctNames.push(p.name);
   });
-  const title = `⚽ Poslední zápas: ${g._home} ${g._hs}:${g._as} ${g._away}`;
+  const title = `Poslední zápas: ${g._home} ${g._hs}:${g._as} ${g._away}`;
   const sub = (exactNames.length
       ? `🎯 <strong>Přesný tip (${exactNames.length})</strong>: ${listNames(exactNames)}`
       : `🎯 Přesný tip nikdo neměl.`)
@@ -1284,7 +1275,7 @@ function renderCrowdWisdomCard(g) {
   const label = o => o === '1' ? `výhru ${g._home}` : o === '2' ? `výhru ${g._away}` : 'remízu';
   const pct  = Math.round(tally[majority] / total * 100);
   const hit  = majority === actual;
-  const title = hit ? '🧠 Kolektivní mozek měl pravdu' : '🧠 Kolektivní mozek se spletl';
+  const title = hit ? 'Kolektivní mozek měl pravdu' : 'Kolektivní mozek se spletl';
   const sub = `<strong>${pct} % hráčů (${tally[majority]}/${total})</strong> tipovalo ${label(majority)}`
     + (hit ? ' – a vyšlo to!' : `, ale skutečnost byla jiná (${g._home} ${g._hs}:${g._as} ${g._away}).`);
   return newsCard(hit ? '🧠' : '🤔', title, sub);
@@ -1301,7 +1292,7 @@ function renderBoldestCard(roundGames) {
     });
   });
   if (!best) return '';
-  const title = '🎲 Nejodvážnější tip kola';
+  const title = 'Nejodvážnější tip kola';
   const sub = `${best.name} vsadil na ${best.pred.home}:${best.pred.away} v zápase ${best.g._home} vs ${best.g._away} – <strong>${best.tot} gólů celkem</strong>!`;
   return newsCard('🎲', title, sub);
 }
@@ -1317,10 +1308,10 @@ function renderOracleCard(roundGames) {
     return { name: p.name, exact };
   });
   const { best, players: tied } = topTied(counts, 'exact');
-  if (best === 0) return newsCard('🔮', '🔮 Věštec kola', 'V tomto kole nikdo netrefil přesné skóre.');
+  if (best === 0) return newsCard('🔮', 'Věštec kola', 'V tomto kole nikdo netrefil přesné skóre.');
   const names = listNames(tied.map(p => p.name));
   const plur = best === 1 ? 'přesný tip' : 'přesné tipy';
-  return newsCard('🔮', '🔮 Věštec kola', `${names} ${tied.length > 1 ? 'měli' : 'měl'} <strong>${best} ${plur} v posledním kole</strong>!`);
+  return newsCard('🔮', 'Věštec kola', `${names} ${tied.length > 1 ? 'měli' : 'měl'} <strong>${best} ${plur} v posledním kole</strong>!`);
 }
 
 /* Unlucky of the round: closest misses (off by exactly 1 goal in total) */
@@ -1352,7 +1343,7 @@ function renderUnluckyCard(roundGames) {
       return `${names} <strong>${verb} jen o gól od přesného tipu${times}</strong>.`;
     });
 
-  return newsCard('😬', '😬 Smolař kola', sentences.join(' '));
+  return newsCard('😬', 'Smolař kola', sentences.join(' '));
 }
 
 /* Biggest jump in the standings compared to before the last round */
@@ -1373,13 +1364,14 @@ function renderBiggestJumpCard(rounds) {
   const names = listNames(bestNames);
   const verb  = bestNames.length > 1 ? 'poskočili' : 'poskočil';
   const unit  = bestDiff === 1 ? 'místo' : 'míst';
-  return newsCard('📈', '📈 Největší skok v pořadí', `${names} <strong>${verb} o ${bestDiff} ${unit} nahoru</strong> po posledním kole.`);
+  return newsCard('📈', 'Největší skok v pořadí', `${names} <strong>${verb} o ${bestDiff} ${unit} nahoru</strong> po posledním kole.`);
 }
 
 /* ── Poll for a match: who's predicting what ─────────────────── */
 function computeMatchPoll(game) {
   const buckets = { '1': [], '0': [], '2': [] };
   const scoreCounts = {};
+  const exactNames = new Set();
   let n = 0;
   players.forEach(p => {
     const pred = p.predictions[game.id];
@@ -1388,8 +1380,11 @@ function computeMatchPoll(game) {
     const key = `${pred.home}:${pred.away}`;
     scoreCounts[key] = (scoreCounts[key] || 0) + 1;
     n++;
+    if (game._fin && game._hs != null && pred.home === game._hs && pred.away === game._as) {
+      exactNames.add(p.name);
+    }
   });
-  return { buckets, scoreCounts, n };
+  return { buckets, scoreCounts, n, exactNames };
 }
 
 /* ── Short verdict sentence for a match card ─────────────────────
@@ -1417,6 +1412,50 @@ function buildConsensus(game, buckets, n, home, away) {
   if (maxPct >= 65)      return `🔥 Drtivá shoda – ${maxPct} % hráčů věří ${favLabel}.`;
   if (maxPct <= 40)      return `🌪️ Tipy se hodně různí, jasného favorita mezi hráči nenajdeme.`;
   return `⚖️ Mírná převaha – ${maxPct} % hráčů věří ${favLabel}.`;
+}
+
+/* ── Per-match insights (shown in finished carousel cards) ──────
+   Returns an HTML string with 2-3 quick facts about the match:
+   who nailed the exact score, were the crowd right, who was closest. */
+function buildMatchInsights(game, buckets, n, exactNames) {
+  if (!game._fin || game._hs == null) return '';
+  const lines = [];
+
+  // 1. Exact score predictors
+  if (exactNames.size > 0) {
+    const names = [...exactNames].join(', ');
+    lines.push(`🎯 <strong>Přesný tip</strong>: ${names}`);
+  } else {
+    lines.push('🎯 Přesný tip <strong>nikdo netrefil</strong>.');
+  }
+
+  // 2. Crowd verdict
+  const pct1 = Math.round(buckets['1'].length / n * 100);
+  const pct0 = Math.round(buckets['0'].length / n * 100);
+  const pct2 = 100 - pct1 - pct0;
+  const actual = outcome(game._hs, game._as);
+  const actualPct = actual === '1' ? pct1 : actual === '2' ? pct2 : pct0;
+  const hit = (actual === '1' && pct1 >= pct0 && pct1 >= pct2) ||
+              (actual === '2' && pct2 >= pct0 && pct2 >= pct1) ||
+              (actual === '0' && pct0 >= pct1 && pct0 >= pct2);
+  lines.push(hit
+    ? `🧠 Dav to trefil – <strong>${actualPct} % hráčů</strong> věřilo správnému výsledku.`
+    : `🧠 Dav se spletl – správný výsledek tipovalo jen <strong>${actualPct} % hráčů</strong>.`);
+
+  // 3. Closest miss (off by exactly 1 total goal, not exact)
+  const nearNames = players.reduce((acc, p) => {
+    const pred = p.predictions[game.id];
+    if (!pred || exactNames.has(p.name)) return acc;
+    const diff = Math.abs(pred.home - game._hs) + Math.abs(pred.away - game._as);
+    if (diff === 1) acc.push(p.name);
+    return acc;
+  }, []);
+  if (nearNames.length) {
+    const names = nearNames.length <= 3 ? nearNames.join(', ') : `${nearNames.slice(0,3).join(', ')} a ${nearNames.length - 3} dalších`;
+    lines.push(`😬 <strong>O gól od přesného tipu</strong>: ${names}`);
+  }
+
+  return `<div class="nm-insights">${lines.map(l => `<div class="nm-insight">${l}</div>`).join('')}</div>`;
 }
 
 /* ── "Zápasy" carousel ──────────────────────────────────────────
@@ -1489,7 +1528,7 @@ function renderMatchCard(el, games, idx) {
     </div>
     <p class="nm-time">${when}${cd ? ` · ${cd}` : ''}</p>`;
 
-  const { buckets, scoreCounts, n } = computeMatchPoll(game);
+  const { buckets, scoreCounts, n, exactNames } = computeMatchPoll(game);
 
   let body;
   if (n === 0) {
@@ -1510,12 +1549,17 @@ function renderMatchCard(el, games, idx) {
 
     const chip = (key, label, pct) => {
       const names = buckets[key];
+      const nameHtml = names.length
+        ? names.map(name => exactNames.has(name)
+            ? `<strong title="Přesný tip!">${name} 🎯</strong>`
+            : name).join(', ')
+        : 'Nikdo';
       return `
         <button type="button" class="poll-chip" data-key="${key}">
           <span>${label} <span class="pc-pct">${pct}%</span> <span class="pc-n">(${names.length})</span></span>
           <span class="poll-chip-arrow">▾</span>
         </button>
-        <div class="poll-names" data-key="${key}" hidden>${names.length ? listNames(names, names.length) : 'Nikdo'}</div>`;
+        <div class="poll-names" data-key="${key}" hidden>${nameHtml}</div>`;
     };
 
     body = `
@@ -1528,7 +1572,8 @@ function renderMatchCard(el, games, idx) {
         ${chip('2', `${teamFlag(game._away)} ${away}`, pct2)}
       </div>
       <p class="nm-stat">${scoreLine}</p>
-      <p class="nm-consensus">${consensus}</p>`;
+      <p class="nm-consensus">${consensus}</p>
+      ${buildMatchInsights(game, buckets, n, exactNames)}`;
   }
 
   el.innerHTML = `<div class="next-match" tabindex="0">${nav}${head}${body}</div>`;
