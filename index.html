@@ -234,6 +234,8 @@ a{color:inherit;text-decoration:none}
 .scl{font-size:.73rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);font-weight:600;margin-bottom:.35rem}
 .scv{font-size:1.65rem;font-weight:800;color:var(--gd);line-height:1.1}
 .scs{font-size:.8rem;color:var(--mut);margin-top:.15rem}
+.sc-podium{display:flex;flex-direction:column;gap:.35rem;margin-top:.3rem}
+.sc-row{font-size:.83rem;color:var(--txt);line-height:1.4}
 .stw{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);overflow:hidden;margin-bottom:1.1rem}
 .stt{padding:.65rem .9rem;font-weight:700;font-size:.86rem;background:var(--gd);color:#fff}
 /* Stats table has its own horizontal scroll on mobile */
@@ -279,6 +281,7 @@ a{color:inherit;text-decoration:none}
 .nm-badge-done{background:var(--gl);color:var(--gm)}
 .nm-badge-pending{background:#fff4e0;color:#b9760a}
 .nm-badge-next{background:#fde6e0;color:#c0392b}
+.nm-badge-live{background:#ffebeb;color:#c0392b;animation:ubadge-pulse 1.2s ease-in-out infinite}
 .nm-counter{font-size:.7rem;color:var(--mut)}
 .nm-head{display:flex;align-items:center;justify-content:center;gap:.5rem;text-align:center}
 .nm-team{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:0}
@@ -810,6 +813,22 @@ function topTied(arr, key) {
   return { best, players: arr.filter(p => p[key] === best) };
 }
 
+function podiumPlaces(arr, key) {
+  const sorted = [...arr].sort((a, b) => b[key] - a[key]);
+  const places = [];
+  for (const item of sorted) {
+    if (item[key] <= 0) break;
+    const last = places[places.length - 1];
+    if (last && last.value === item[key]) {
+      last.names.push(item.name);
+    } else {
+      if (places.length >= 3) break;
+      places.push({ value: item[key], names: [item.name] });
+    }
+  }
+  return places;
+}
+
 /* ── Helper: "YYYY-MM-DD" date key from a kickoff string ────────
    Accepts both "2026-06-11 13:00" and "06/11/2026 13:00". */
 function koDateKey(ko) {
@@ -1169,9 +1188,6 @@ function renderStats(board, finished) {
   const tEstrk = tiedNames('estrk');
   const tExact = tiedNames('exact');
   const tPct   = tiedNames('pct');
-  const tSmolar = tiedNames('smolar');
-  const tBold   = tiedNames('boldGoals');
-
   // For pct card also show correct/total – use the first tied player's numbers
   // (they all have the same pct, so the ratio may differ – show range if >1)
   const pctTied = topTied(ps, 'pct').players;
@@ -1179,18 +1195,24 @@ function renderStats(board, finished) {
     ? `${pctTied[0].name} (${pctTied[0].correct}/${pctTied[0].total})`
     : pctTied.map(p => `${p.name} (${p.correct}/${p.total})`).join(', ');
 
-  const smolarCard = tSmolar.best > 0 ? `
+  const medals = ['🥇', '🥈', '🥉'];
+
+  const smolarPlaces = podiumPlaces(ps, 'smolar');
+  const smolarCard = smolarPlaces.length > 0 ? `
     <div class="sc">
-      <div class="scl">😬 Největší smolař</div>
-      <div class="scv">${tSmolar.best}×</div>
-      <div class="scs">${tSmolar.label}</div>
+      <div class="scl">😬 Největší smolaři</div>
+      <div class="sc-podium">${smolarPlaces.map((p, i) =>
+        `<div class="sc-row">${medals[i]} <strong>${p.value}×</strong> ${p.names.join(', ')}</div>`
+      ).join('')}</div>
     </div>` : '';
 
-  const boldCard = tBold.best > 0 ? `
+  const boldPlaces = podiumPlaces(ps, 'boldGoals');
+  const boldCard = boldPlaces.length > 0 ? `
     <div class="sc">
-      <div class="scl">💥 Nejodvážnější tipér</div>
-      <div class="scv">${tBold.best}</div>
-      <div class="scs">${tBold.label} – gólů celkem tipováno</div>
+      <div class="scl">💥 Nejodvážnější tipéři</div>
+      <div class="sc-podium">${boldPlaces.map((p, i) =>
+        `<div class="sc-row">${medals[i]} <strong>${p.value} gólů</strong> · ${p.names.join(', ')}</div>`
+      ).join('')}</div>
     </div>` : '';
 
   const cards = `<div class="sgrid">
@@ -1370,12 +1392,17 @@ function renderMatchCard(el, games, idx) {
   const away = displayTeamName(game._away || 'TBD');
   const finished = game._fin && game._hs != null && game._as != null;
   const isNext   = !finished && idx === games.findIndex(g => !g._fin);
+  const ko = kickoffInstant(game._ko, game._stad);
+  const now = Date.now();
+  const isLive = !finished && ko && now >= ko.getTime() && now <= ko.getTime() + 2 * 60 * 60 * 1000;
 
   const badge = finished
     ? '<span class="nm-badge nm-badge-done">✅ Odehráno</span>'
-    : isNext
-      ? '<span class="nm-badge nm-badge-next">🔥 Další zápas</span>'
-      : '<span class="nm-badge nm-badge-pending">⏳ Čeká se</span>';
+    : isLive
+      ? '<span class="nm-badge nm-badge-live">🔴 Právě se hraje</span>'
+      : isNext
+        ? '<span class="nm-badge nm-badge-next">🔥 Další zápas</span>'
+        : '<span class="nm-badge nm-badge-pending">⏳ Čeká se</span>';
 
   const middle = finished
     ? `<div class="nm-score">${game._hs} : ${game._as}</div>`
