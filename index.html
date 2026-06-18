@@ -1139,10 +1139,20 @@ function renderStats(board, finished) {
     const total   = sorted.filter(g => p.predictions[g.id] && g._hs != null).length;
     const correct = sorted.filter(g => { const pr = p.predictions[g.id]; return pr && g._hs != null && outcome(pr.home, pr.away) === outcome(g._hs, g._as); }).length;
     const exact   = sorted.filter(g => { const pr = p.predictions[g.id]; return pr && pr.home === g._hs && pr.away === g._as; }).length;
+    const smolar  = sorted.filter(g => {
+      const pr = p.predictions[g.id];
+      if (!pr || g._hs == null) return false;
+      return !(pr.home === g._hs && pr.away === g._as) &&
+             Math.abs(pr.home - g._hs) + Math.abs(pr.away - g._as) === 1;
+    }).length;
+    const boldGoals = sorted.reduce((sum, g) => {
+      const pr = p.predictions[g.id];
+      return sum + (pr && g._hs != null ? pr.home + pr.away : 0);
+    }, 0);
     return { name: p.name,
              strk:  streak(p.predictions, sorted, 'correct'),
              estrk: streak(p.predictions, sorted, 'exact'),
-             total, correct, exact,
+             total, correct, exact, smolar, boldGoals,
              pct: total > 0 ? Math.round(correct / total * 100) : 0 };
   });
 
@@ -1159,6 +1169,8 @@ function renderStats(board, finished) {
   const tEstrk = tiedNames('estrk');
   const tExact = tiedNames('exact');
   const tPct   = tiedNames('pct');
+  const tSmolar = tiedNames('smolar');
+  const tBold   = tiedNames('boldGoals');
 
   // For pct card also show correct/total – use the first tied player's numbers
   // (they all have the same pct, so the ratio may differ – show range if >1)
@@ -1166,6 +1178,20 @@ function renderStats(board, finished) {
   const pctSub = pctTied.length === 1
     ? `${pctTied[0].name} (${pctTied[0].correct}/${pctTied[0].total})`
     : pctTied.map(p => `${p.name} (${p.correct}/${p.total})`).join(', ');
+
+  const smolarCard = tSmolar.best > 0 ? `
+    <div class="sc">
+      <div class="scl">😬 Největší smolař</div>
+      <div class="scv">${tSmolar.best}×</div>
+      <div class="scs">${tSmolar.label}</div>
+    </div>` : '';
+
+  const boldCard = tBold.best > 0 ? `
+    <div class="sc">
+      <div class="scl">💥 Nejodvážnější tipér</div>
+      <div class="scv">${tBold.best}</div>
+      <div class="scs">${tBold.label} – gólů celkem tipováno</div>
+    </div>` : '';
 
   const cards = `<div class="sgrid">
     <div class="sc">
@@ -1188,6 +1214,8 @@ function renderStats(board, finished) {
       <div class="scv">${tPct.best}%</div>
       <div class="scs">${pctSub}</div>
     </div>
+    ${smolarCard}
+    ${boldCard}
   </div>`;
 
   // Detailed table: competitive rank per row
