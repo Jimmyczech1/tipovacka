@@ -330,20 +330,6 @@ a{color:inherit;text-decoration:none}
 }
 
 /* ═══════════════════════════════════════════════════════
-   PŘEHLED – NEWSFEED
-═══════════════════════════════════════════════════════ */
-.news-list{display:flex;flex-direction:column;gap:.65rem}
-.news{
-  background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);
-  box-shadow:var(--s1);padding:.85rem 1rem;
-  display:flex;gap:.75rem;align-items:flex-start;
-}
-.news-ic{font-size:1.5rem;line-height:1.3;flex-shrink:0}
-.news-body{flex:1;min-width:0}
-.news-title{font-weight:700;margin-bottom:.2rem;font-size:.95rem;color:var(--gd)}
-.news-sub{font-size:.83rem;color:var(--mut);line-height:1.5}
-
-/* ═══════════════════════════════════════════════════════
    PŘEHLED – FORMA HRÁČŮ
 ═══════════════════════════════════════════════════════ */
 .form-hint{font-size:.78rem;color:var(--mut);margin-bottom:.6rem}
@@ -593,9 +579,6 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
     <div class="wrap">
       <p class="stitle">⚽ Zápasy</p>
       <div id="nextMatch"></div>
-
-      <p class="stitle" style="margin-top:1.75rem">🏠 Přehled</p>
-      <div id="newsfeed" class="news-list"></div>
 
       <p class="stitle" style="margin-top:1.75rem">🔥 Forma hráčů</p>
       <div id="formGuide"></div>
@@ -1235,137 +1218,8 @@ function renderStats(board, finished) {
 }
 
 /* ══════════════════════════════════════════════════════
-   PŘEHLED – NEWSFEED, FORMA, GRAF VÝVOJE BODŮ
+   PŘEHLED – FORMA, GRAF VÝVOJE BODŮ
 ═══════════════════════════════════════════════════════ */
-
-function newsCard(icon, title, sub) {
-  return `<div class="news"><div class="news-ic">${icon}</div><div class="news-body"><div class="news-title">${title}</div><div class="news-sub">${sub}</div></div></div>`;
-}
-
-/* Last finished match: who nailed the exact score, who got the outcome right */
-function renderLastMatchCard(g) {
-  const exactNames = [], correctNames = [];
-  players.forEach(p => {
-    const pred = p.predictions[g.id]; if (!pred) return;
-    if (pred.home === g._hs && pred.away === g._as) exactNames.push(p.name);
-    else if (outcome(pred.home, pred.away) === outcome(g._hs, g._as)) correctNames.push(p.name);
-  });
-  const title = `Poslední zápas: ${g._home} ${g._hs}:${g._as} ${g._away}`;
-  const sub = (exactNames.length
-      ? `🎯 <strong>Přesný tip (${exactNames.length})</strong>: ${listNames(exactNames)}`
-      : `🎯 Přesný tip nikdo neměl.`)
-    + '<br>' +
-    (correctNames.length
-      ? `✓ <strong>Správný výsledek navíc</strong>: ${listNames(correctNames)}`
-      : `✓ Nikdo další nemá ani správný výsledek.`);
-  return newsCard('⚽', title, sub);
-}
-
-/* Crowd wisdom: what did the majority predict for the last match, and were they right? */
-function renderCrowdWisdomCard(g) {
-  const tally = { '1': 0, '0': 0, '2': 0 };
-  let total = 0;
-  players.forEach(p => {
-    const pred = p.predictions[g.id]; if (!pred) return;
-    tally[outcome(pred.home, pred.away)]++; total++;
-  });
-  if (!total) return '';
-  const actual   = outcome(g._hs, g._as);
-  const majority = Object.keys(tally).reduce((a, b) => tally[a] >= tally[b] ? a : b);
-  const label = o => o === '1' ? `výhru ${g._home}` : o === '2' ? `výhru ${g._away}` : 'remízu';
-  const pct  = Math.round(tally[majority] / total * 100);
-  const hit  = majority === actual;
-  const title = hit ? 'Kolektivní mozek měl pravdu' : 'Kolektivní mozek se spletl';
-  const sub = `<strong>${pct} % hráčů (${tally[majority]}/${total})</strong> tipovalo ${label(majority)}`
-    + (hit ? ' – a vyšlo to!' : `, ale skutečnost byla jiná (${g._home} ${g._hs}:${g._as} ${g._away}).`);
-  return newsCard(hit ? '🧠' : '🤔', title, sub);
-}
-
-/* Boldest tip of the round: prediction with the most total goals */
-function renderBoldestCard(roundGames) {
-  let best = null;
-  players.forEach(p => {
-    roundGames.forEach(g => {
-      const pred = p.predictions[g.id]; if (!pred) return;
-      const tot = pred.home + pred.away;
-      if (!best || tot > best.tot) best = { tot, name: p.name, pred, g };
-    });
-  });
-  if (!best) return '';
-  const title = 'Nejodvážnější tip kola';
-  const sub = `${best.name} vsadil na ${best.pred.home}:${best.pred.away} v zápase ${best.g._home} vs ${best.g._away} – <strong>${best.tot} gólů celkem</strong>!`;
-  return newsCard('🎲', title, sub);
-}
-
-/* Oracle of the round: most exact scores in the last round */
-function renderOracleCard(roundGames) {
-  const counts = players.map(p => {
-    let exact = 0;
-    roundGames.forEach(g => {
-      const pred = p.predictions[g.id];
-      if (pred && pred.home === g._hs && pred.away === g._as) exact++;
-    });
-    return { name: p.name, exact };
-  });
-  const { best, players: tied } = topTied(counts, 'exact');
-  if (best === 0) return newsCard('🔮', 'Věštec kola', 'V tomto kole nikdo netrefil přesné skóre.');
-  const names = listNames(tied.map(p => p.name));
-  const plur = best === 1 ? 'přesný tip' : 'přesné tipy';
-  return newsCard('🔮', 'Věštec kola', `${names} ${tied.length > 1 ? 'měli' : 'měl'} <strong>${best} ${plur} v posledním kole</strong>!`);
-}
-
-/* Unlucky of the round: closest misses (off by exactly 1 goal in total) */
-function renderUnluckyCard(roundGames) {
-  const counts = players.map(p => {
-    let near = 0;
-    roundGames.forEach(g => {
-      const pred = p.predictions[g.id]; if (!pred) return;
-      const exact = pred.home === g._hs && pred.away === g._as;
-      const diff  = Math.abs(pred.home - g._hs) + Math.abs(pred.away - g._as);
-      if (!exact && diff === 1) near++;
-    });
-    return { name: p.name, near };
-  }).filter(p => p.near > 0);
-  if (!counts.length) return '';
-
-  // Group everyone who had at least one near-miss, not just the round leader
-  const byCount = {};
-  counts.forEach(p => { (byCount[p.near] = byCount[p.near] || []).push(p.name); });
-
-  const sentences = Object.keys(byCount)
-    .map(Number)
-    .sort((a, b) => b - a)
-    .map(n => {
-      const tied  = byCount[n];
-      const names = listNames(tied);
-      const verb  = tied.length > 1 ? 'byli' : 'byl';
-      const times = roundGames.length > 1 ? ` (${n}× v tomto kole)` : '';
-      return `${names} <strong>${verb} jen o gól od přesného tipu${times}</strong>.`;
-    });
-
-  return newsCard('😬', 'Smolař kola', sentences.join(' '));
-}
-
-/* Biggest jump in the standings compared to before the last round */
-function renderBiggestJumpCard(rounds) {
-  if (rounds.length < 2) return '';
-  const before = assignRanks(computeBoardSorted(rounds.slice(0, -1).flatMap(r => r.games)));
-  const after  = assignRanks(computeBoardSorted(rounds.flatMap(r => r.games)));
-  const beforeRank = {};
-  before.forEach(p => { beforeRank[p.name] = p.rank; });
-
-  let bestDiff = 0, bestNames = [];
-  after.forEach(p => {
-    const diff = (beforeRank[p.name] ?? p.rank) - p.rank;
-    if (diff > bestDiff) { bestDiff = diff; bestNames = [p.name]; }
-    else if (diff === bestDiff && diff > 0) bestNames.push(p.name);
-  });
-  if (bestDiff <= 0) return '';
-  const names = listNames(bestNames);
-  const verb  = bestNames.length > 1 ? 'poskočili' : 'poskočil';
-  const unit  = bestDiff === 1 ? 'místo' : 'míst';
-  return newsCard('📈', 'Největší skok v pořadí', `${names} <strong>${verb} o ${bestDiff} ${unit} nahoru</strong> po posledním kole.`);
-}
 
 /* ── Poll for a match: who's predicting what ─────────────────── */
 function computeMatchPoll(game) {
@@ -1421,28 +1275,19 @@ function buildMatchInsights(game, buckets, n, exactNames) {
   if (!game._fin || game._hs == null) return '';
   const lines = [];
 
-  // 1. Exact score predictors
-  if (exactNames.size > 0) {
-    const names = [...exactNames].join(', ');
-    lines.push(`🎯 <strong>Přesný tip</strong>: ${names}`);
-  } else {
-    lines.push('🎯 Přesný tip <strong>nikdo netrefil</strong>.');
+  // 1. Boldest pick (most total goals predicted for this match)
+  let boldest = null;
+  players.forEach(p => {
+    const pred = p.predictions[game.id];
+    if (!pred) return;
+    const tot = pred.home + pred.away;
+    if (!boldest || tot > boldest.tot) boldest = { tot, name: p.name, pred };
+  });
+  if (boldest) {
+    lines.push(`💥 <strong>Nejodvážnější tip</strong>: ${boldest.name} tipoval ${boldest.pred.home}:${boldest.pred.away} (${boldest.tot} gólů celkem)`);
   }
 
-  // 2. Crowd verdict
-  const pct1 = Math.round(buckets['1'].length / n * 100);
-  const pct0 = Math.round(buckets['0'].length / n * 100);
-  const pct2 = 100 - pct1 - pct0;
-  const actual = outcome(game._hs, game._as);
-  const actualPct = actual === '1' ? pct1 : actual === '2' ? pct2 : pct0;
-  const hit = (actual === '1' && pct1 >= pct0 && pct1 >= pct2) ||
-              (actual === '2' && pct2 >= pct0 && pct2 >= pct1) ||
-              (actual === '0' && pct0 >= pct1 && pct0 >= pct2);
-  lines.push(hit
-    ? `🧠 Dav to trefil – <strong>${actualPct} % hráčů</strong> věřilo správnému výsledku.`
-    : `🧠 Dav se spletl – správný výsledek tipovalo jen <strong>${actualPct} % hráčů</strong>.`);
-
-  // 3. Closest miss (off by exactly 1 total goal, not exact)
+  // 2. Closest miss — Smolař zápasu (off by exactly 1 total goal, not exact)
   const nearNames = players.reduce((acc, p) => {
     const pred = p.predictions[game.id];
     if (!pred || exactNames.has(p.name)) return acc;
@@ -1452,9 +1297,10 @@ function buildMatchInsights(game, buckets, n, exactNames) {
   }, []);
   if (nearNames.length) {
     const names = nearNames.length <= 3 ? nearNames.join(', ') : `${nearNames.slice(0,3).join(', ')} a ${nearNames.length - 3} dalších`;
-    lines.push(`😬 <strong>O gól od přesného tipu</strong>: ${names}`);
+    lines.push(`😬 <strong>Smolař zápasu</strong>: ${names} – chyběl jen jeden gól`);
   }
 
+  if (!lines.length) return '';
   return `<div class="nm-insights">${lines.map(l => `<div class="nm-insight">${l}</div>`).join('')}</div>`;
 }
 
@@ -1610,26 +1456,6 @@ function renderMatchCard(el, games, idx) {
       nmNavigate(el, games, idx, dx < 0 ? 1 : -1);
     }
   }, { passive: true });
-}
-
-function renderNewsfeed() {
-  const el = document.getElementById('newsfeed');
-  const rounds = computeRounds();
-  if (!rounds.length) {
-    el.innerHTML = newsCard('⏳', 'Zatím se nehrálo', 'Jakmile proběhne první zápas, objeví se tady zajímavosti a statistiky kola.');
-    return;
-  }
-
-  const lastRound = rounds[rounds.length - 1];
-  const lastGame  = lastRound.games[lastRound.games.length - 1];
-
-  el.innerHTML =
-    renderLastMatchCard(lastGame) +
-    renderCrowdWisdomCard(lastGame) +
-    renderBoldestCard(lastRound.games) +
-    renderOracleCard(lastRound.games) +
-    renderUnluckyCard(lastRound.games) +
-    renderBiggestJumpCard(rounds);
 }
 
 /* ── Forma hráčů: last few results as colored dots ──────────── */
@@ -1878,7 +1704,6 @@ function renderAll() {
   renderChampionGrid();
   renderAllTips();
   renderNextMatch();
-  renderNewsfeed();
   renderFormGuide();
   renderPointsChart();
 }
