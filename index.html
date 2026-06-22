@@ -10,6 +10,7 @@
 ═══════════════════════════════════════════════════════ */
 
 :root {
+  --hdr: #0a4a2a;
   --gd:  #0a4a2a;
   --gm:  #1a7a42;
   --gl:  #e8f5ee;
@@ -23,6 +24,19 @@
   --col1-w: 170px;
   --col2-w: 100px;
 }
+html.dark {
+  --hdr: #061509;
+  --gd:  #52c97e;
+  --gm:  #1e8a48;
+  --gl:  #0d2214;
+  --bg:  #0f1611;
+  --sur: #182319;
+  --brd: #27392b;
+  --txt: #d5e8da;
+  --mut: #7a9882;
+  --s1:  0 1px 3px rgba(0,0,0,.25);
+  --s2:  0 4px 16px rgba(0,0,0,.35);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:hidden}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.5}
@@ -32,13 +46,15 @@ a{color:inherit;text-decoration:none}
    HEADER
 ═══════════════════════════════════════════════════════ */
 .hdr{
-  background:var(--gd);color:#fff;
+  background:var(--hdr);color:#fff;
   padding:.85rem 1.25rem;
   display:flex;align-items:center;gap:.85rem;
 }
 .hdr img{height:48px;width:auto;flex-shrink:0}
 .hdr h1{font-size:1.15rem;font-weight:700;line-height:1.25}
 .hdr p{font-size:.78rem;opacity:.7;margin-top:2px}
+.theme-btn{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--rmd);color:#fff;cursor:pointer;font-size:1.1rem;line-height:1;padding:.35rem .5rem;flex-shrink:0}
+.theme-btn:hover{background:rgba(255,255,255,.22)}
 
 /* ═══════════════════════════════════════════════════════
    STATUS BAR
@@ -106,7 +122,7 @@ a{color:inherit;text-decoration:none}
    LEADERBOARD TABLE (rank 4+)
 ═══════════════════════════════════════════════════════ */
 .lbt{width:100%;border-collapse:collapse;background:var(--sur);border-radius:var(--rmd);overflow:hidden;box-shadow:var(--s1)}
-.lbt thead th{background:var(--gd);color:#fff;font-weight:600;font-size:.77rem;text-transform:uppercase;letter-spacing:.04em;padding:.6rem .9rem;text-align:left}
+.lbt thead th{background:var(--hdr);color:#fff;font-weight:600;font-size:.77rem;text-transform:uppercase;letter-spacing:.04em;padding:.6rem .9rem;text-align:left}
 .lbt thead th:last-child,.lbt tbody td:last-child{text-align:right;padding-right:1rem}
 .lbt tbody tr{border-bottom:1px solid var(--brd)}
 .lbt tbody tr:last-child{border-bottom:none}
@@ -139,7 +155,7 @@ a{color:inherit;text-decoration:none}
   font-size:.85rem;font-weight:500;cursor:pointer;
   transition:background .15s;
 }
-.btn:hover{background:var(--gd);border-color:var(--gd)}
+.btn:hover{background:var(--hdr);border-color:var(--hdr)}
 .btn2{background:var(--sur);color:var(--gm)}
 .btn2:hover{background:var(--gl)}
 
@@ -162,7 +178,7 @@ a{color:inherit;text-decoration:none}
 /* Sticky header row */
 #tipsTable thead th{
   position:sticky;top:0;z-index:100;
-  background:var(--gd);color:#fff;
+  background:var(--hdr);color:#fff;
   font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;
   padding:.55rem .6rem;white-space:nowrap;text-align:center;
   border-right:1px solid rgba(255,255,255,.1);
@@ -198,8 +214,8 @@ a{color:inherit;text-decoration:none}
 }
 
 /* Corner header cells – highest z-index, dark bg */
-#tipsTable thead th:first-child{z-index:102;background:var(--gd)}
-#tipsTable thead th:nth-child(2){z-index:101;background:var(--gd);box-shadow:2px 0 5px rgba(0,0,0,.15)}
+#tipsTable thead th:first-child{z-index:102;background:var(--hdr)}
+#tipsTable thead th:nth-child(2){z-index:101;background:var(--hdr);box-shadow:2px 0 5px rgba(0,0,0,.15)}
 
 /* Cell colours */
 .ce{background:#d4edda!important;color:#155724;font-weight:600}
@@ -212,7 +228,7 @@ a{color:inherit;text-decoration:none}
 ═══════════════════════════════════════════════════════ */
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
 .ccard{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);overflow:hidden}
-.cch{display:flex;align-items:center;justify-content:space-between;background:var(--gd);color:#fff;padding:.65rem .9rem}
+.cch{display:flex;align-items:center;justify-content:space-between;background:var(--hdr);color:#fff;padding:.65rem .9rem}
 .cct{font-weight:700;font-size:.95rem}
 .ccv{background:rgba(255,255,255,.2);border-radius:20px;padding:2px 9px;font-size:.78rem;font-weight:600}
 .ccb{padding:.7rem .9rem}
@@ -246,9 +262,9 @@ a{color:inherit;text-decoration:none}
 .my-tip strong{color:var(--gd)}
 /* Player selector in status bar */
 #playerSel{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:.1rem .35rem;font-size:inherit;cursor:pointer;max-width:140px}
-#playerSel option{background:var(--gd);color:#fff}
+#playerSel option{background:var(--hdr);color:#fff}
 .stw{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);overflow:hidden;margin-bottom:1.1rem}
-.stt{padding:.65rem .9rem;font-weight:700;font-size:.86rem;background:var(--gd);color:#fff}
+.stt{padding:.65rem .9rem;font-weight:700;font-size:.86rem;background:var(--hdr);color:#fff}
 /* Stats table has its own horizontal scroll on mobile */
 .stw-inner{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .stb{width:100%;border-collapse:collapse;font-size:.84rem}
@@ -558,6 +574,17 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 }
 
 /* ═══════════════════════════════════════════════════════
+   DARK MODE – hardcoded-colour overrides
+═══════════════════════════════════════════════════════ */
+html.dark .stb th{background:var(--gl)}
+html.dark .ce,html.dark .sw,html.dark .fdot.ex{background:#0d2a14!important;color:#52c97e!important}
+html.dark .cw,html.dark .sl,html.dark .fdot.wr{background:#2a0d0d!important;color:#f08080!important}
+html.dark .nm-badge-pending{background:#2a1e00;color:#f4b942}
+html.dark .nm-badge-next{background:#2a0e0e;color:#ff8585}
+html.dark .nm-badge-live{background:#2a0e0e;color:#ff8585}
+html.dark .poll-seg.away{background:#8b2020}
+
+/* ═══════════════════════════════════════════════════════
    REDUCED MOTION
 ═══════════════════════════════════════════════════════ */
 @media(prefers-reduced-motion:reduce){
@@ -573,6 +600,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
     <h1>Tipovací soutěž – MS ve fotbale 2026 ⚽</h1>
     <p>Živé pořadí na základě výsledků zápasů</p>
   </div>
+  <button id="themeBtn" class="theme-btn" aria-label="Přepnout vzhled">🌙</button>
 </header>
 
 <div class="sbar">
@@ -1895,6 +1923,35 @@ document.getElementById('btnCompare').addEventListener('click', () => {
   if (n1) renderComparison(n1, n2 || null);
 });
 document.getElementById('btnAll').addEventListener('click', renderAllTips);
+
+/* ── Theme (dark / light / auto) ────────────────────── */
+(function() {
+  const saved = localStorage.getItem('tipovacka_theme');
+  const osDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (!saved && osDark)) {
+    document.documentElement.classList.add('dark');
+  }
+})();
+
+function updateThemeBtn() {
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+}
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const nowDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('tipovacka_theme', nowDark ? 'dark' : 'light');
+  updateThemeBtn();
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  if (!localStorage.getItem('tipovacka_theme')) {
+    document.documentElement.classList.toggle('dark', e.matches);
+    updateThemeBtn();
+  }
+});
+
+updateThemeBtn();
 
 /* ── Init ────────────────────────────────────────────── */
 async function init() {
