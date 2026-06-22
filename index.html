@@ -236,6 +236,17 @@ a{color:inherit;text-decoration:none}
 .scs{font-size:.8rem;color:var(--mut);margin-top:.15rem}
 .sc-podium{display:flex;flex-direction:column;gap:.35rem;margin-top:.3rem}
 .sc-row{font-size:.83rem;color:var(--txt);line-height:1.4}
+/* Poll score groups */
+.ps-row{padding:.28rem 0;font-size:.82rem;color:var(--txt);border-bottom:1px solid var(--brd)}
+.ps-row:last-child{border-bottom:none}
+.ps-score{font-weight:700;color:var(--gd);min-width:2.2rem;display:inline-block}
+.ps-empty{color:var(--mut);font-style:italic}
+/* "Tvůj tip" block */
+.my-tip{font-size:.85rem;background:var(--gl);border-left:3px solid var(--gm);border-radius:0 var(--rsm) var(--rsm) 0;padding:.4rem .75rem;margin-top:.55rem}
+.my-tip strong{color:var(--gd)}
+/* Player selector in status bar */
+#playerSel{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:.1rem .35rem;font-size:inherit;cursor:pointer;max-width:140px}
+#playerSel option{background:var(--gd);color:#fff}
 .stw{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);box-shadow:var(--s1);overflow:hidden;margin-bottom:1.1rem}
 .stt{padding:.65rem .9rem;font-weight:700;font-size:.86rem;background:var(--gd);color:#fff}
 /* Stats table has its own horizontal scroll on mobile */
@@ -567,6 +578,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
 <div class="sbar">
   <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
   <div class="si">🕐 <span id="updateLabel">Poslední aktualizace:</span>&nbsp;<span id="lastUpdated">–</span>&nbsp;<span id="updateBadge"></span></div>
+  <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select></div>
 </div>
 
 <nav class="tnav" role="tablist">
@@ -1450,18 +1462,44 @@ function renderMatchCard(el, games, idx) {
 
     const chip = (key, label, pct) => {
       const names = buckets[key];
-      const nameHtml = names.length
-        ? names.map(name => exactNames.has(name)
-            ? `<strong title="Přesný tip!">${name} 🎯</strong>`
-            : name).join(', ')
-        : 'Nikdo';
+      let dropHtml;
+      if (!names.length) {
+        dropHtml = '<div class="ps-row ps-empty">Nikdo</div>';
+      } else {
+        const groups = {};
+        names.forEach(name => {
+          const pred = players.find(p => p.name === name)?.predictions[game.id];
+          if (!pred) return;
+          const k = `${pred.home}:${pred.away}`;
+          (groups[k] = groups[k] || []).push(name);
+        });
+        dropHtml = Object.entries(groups)
+          .sort((a, b) => b[1].length - a[1].length)
+          .map(([score, snames]) => {
+            const isExact = game._fin && game._hs != null && score === `${game._hs}:${game._as}`;
+            const nameList = snames.map(n => exactNames.has(n) ? `<strong>${n}</strong>` : n).join(', ');
+            const count = snames.length > 1 ? ` (${snames.length}×)` : '';
+            return `<div class="ps-row">${isExact ? '🎯 ' : ''}<span class="ps-score">${score}</span>${count} — ${nameList}</div>`;
+          }).join('');
+      }
       return `
         <button type="button" class="poll-chip" data-key="${key}">
           <span>${label} <span class="pc-pct">${pct}%</span> <span class="pc-n">(${names.length})</span></span>
           <span class="poll-chip-arrow">▾</span>
         </button>
-        <div class="poll-names" data-key="${key}" hidden>${nameHtml}</div>`;
+        <div class="poll-names" data-key="${key}" hidden>${dropHtml}</div>`;
     };
+
+    const myName = localStorage.getItem('tipovacka_playerName') || '';
+    const myPred = myName ? players.find(p => p.name === myName)?.predictions[game.id] : null;
+    let myTipHtml = '';
+    if (myPred) {
+      const myOutcome = outcome(myPred.home, myPred.away);
+      const isExact   = finished && myPred.home === game._hs && myPred.away === game._as;
+      const isCorrect = finished && myOutcome === outcome(game._hs, game._as);
+      const verdict   = !finished ? '' : isExact ? ' — 🎯 Přesné skóre!' : isCorrect ? ' — ✅ Správný výsledek' : ' — ❌ Netrefil';
+      myTipHtml = `<div class="my-tip">Tvůj tip: <strong>${myPred.home}:${myPred.away}</strong>${verdict}</div>`;
+    }
 
     body = `
       <div class="poll-bar">
@@ -1474,6 +1512,7 @@ function renderMatchCard(el, games, idx) {
       </div>
       <p class="nm-stat">${scoreLine}</p>
       <p class="nm-consensus">${consensus}</p>
+      ${myTipHtml}
       ${buildMatchInsights(game, buckets, n, exactNames)}`;
   }
 
@@ -1768,6 +1807,20 @@ function populateSelects() {
     const s = document.getElementById(id);
     s.innerHTML = '<option value="">Vyberte hráče…</option>';
     players.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p.name; s.appendChild(o); });
+  });
+
+  const psel = document.getElementById('playerSel');
+  players.slice().sort((a, b) => a.name.localeCompare(b.name, 'cs')).forEach(p => {
+    const o = document.createElement('option');
+    o.value = o.textContent = p.name;
+    psel.appendChild(o);
+  });
+  const saved = localStorage.getItem('tipovacka_playerName');
+  if (saved) psel.value = saved;
+  psel.addEventListener('change', () => {
+    if (psel.value) localStorage.setItem('tipovacka_playerName', psel.value);
+    else localStorage.removeItem('tipovacka_playerName');
+    renderNextMatch();
   });
 }
 
