@@ -2043,8 +2043,7 @@ function renderTeams(filterVal) {
       } else {
         sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
       }
-      const venue = isH ? 'D' : 'V';
-      return `<div class="cmrow"><span class="t"><small style="color:var(--mut);margin-right:3px">${venue}</small>vs ${opp}</span>${sh}</div>`;
+      return `<div class="cmrow"><span class="t">vs ${opp}</span>${sh}</div>`;
     }).join('');
     return `<div class="ccard">
       <div class="cch">
