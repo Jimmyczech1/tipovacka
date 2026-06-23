@@ -2221,6 +2221,16 @@ function updateBellBtn() {
 }
 
 document.getElementById('bellBtn').addEventListener('click', async () => {
+  // TEMP DEBUG — remove after diagnosis
+  alert(
+    'DEBUG:\n' +
+    'standalone=' + navigator.standalone + '\n' +
+    'Notification=' + typeof Notification + '\n' +
+    'osReady=' + _osReady + '\n' +
+    'osError=' + _osInitError + '\n' +
+    'OneSignal=' + (typeof OneSignal) + '\n' +
+    'iOS=' + (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+  );
   if (typeof Notification === 'undefined') {
     if (navigator.standalone) {
       // Running as PWA but Notification API still missing → iOS < 16.4
