@@ -2126,7 +2126,13 @@ function updateBellBtn() {
 
 document.getElementById('bellBtn').addEventListener('click', async () => {
   if (typeof Notification === 'undefined') {
-    alert('Tvůj prohlížeč nepodporuje webové notifikace.');
+    // iOS Safari outside PWA — Notification API not available until added to home screen
+    alert(
+      'Na iOS fungují notifikace pouze v Safari a vyžadují přidání webu na plochu.\n\n' +
+      '1. Otevři tipovacku v Safari\n' +
+      '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
+      '3. Otevři nově přidanou ikonu a klikni 🔕'
+    );
     return;
   }
   if (Notification.permission === 'denied') {
@@ -2198,6 +2204,7 @@ function initOneSignal() {
       await OneSignal.init({
         appId: ONESIGNAL_APP_ID,
         serviceWorkerPath: 'OneSignalSDKWorker.js',
+        autoPrompt: false,
         notifyButton: { enable: false },
         welcomeNotification: { disable: true },
       });
