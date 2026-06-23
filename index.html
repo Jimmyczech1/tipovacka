@@ -586,12 +586,8 @@ html.dark .nm-badge-next{background:#2a0e0e;color:#ff8585}
 html.dark .nm-badge-live{background:#2a0e0e;color:#ff8585}
 html.dark .poll-seg.away{background:#8b2020}
 
-/* ═══════════════════════════════════════════════════════
-   BELL BUTTON (status bar notifications)
-═══════════════════════════════════════════════════════ */
-.bell-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:var(--rsm);color:#fff;cursor:pointer;font-size:.85rem;line-height:1.5;padding:.1rem .3rem;vertical-align:middle}
-.bell-btn:hover{background:rgba(255,255,255,.25)}
 .mc-me-gap{margin-top:.35rem;color:var(--gd);font-weight:600}
+#bellBtn.bell-blocked{opacity:.5}
 
 /* ═══════════════════════════════════════════════════════
    REDUCED MOTION
@@ -610,13 +606,14 @@ html.dark .poll-seg.away{background:#8b2020}
     <h1>Tipovací soutěž – MS ve fotbale 2026 ⚽</h1>
     <p>Živé pořadí na základě výsledků zápasů</p>
   </div>
+  <button id="bellBtn" class="theme-btn" aria-label="Notifikace">🔕</button>
   <button id="themeBtn" class="theme-btn" aria-label="Přepnout vzhled">🌙</button>
 </header>
 
 <div class="sbar">
   <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
   <div class="si">🕐 <span id="updateLabel">Poslední aktualizace:</span>&nbsp;<span id="lastUpdated">–</span>&nbsp;<span id="updateBadge"></span></div>
-  <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select>&nbsp;<button id="bellBtn" class="bell-btn" style="display:none" title="Zapnout notifikace o výsledcích">🔕</button></div>
+  <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select></div>
 </div>
 
 <nav class="tnav" role="tablist">
@@ -2079,16 +2076,19 @@ updateThemeBtn();
 /* ── OneSignal push notifications ───────────────────── */
 function updateBellBtn() {
   const btn = document.getElementById('bellBtn');
-  if (!btn || !window.OneSignal || !ONESIGNAL_APP_ID) return;
+  if (!btn) return;
   if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
     btn.textContent = '🔕';
     btn.title = 'Notifikace jsou zablokované – klikni pro návod jak je zapnout';
-    btn.style.opacity = '0.55';
+    btn.classList.add('bell-blocked');
+  } else if (window.OneSignal && OneSignal.User.PushSubscription.optedIn) {
+    btn.textContent = '🔔';
+    btn.title = 'Notifikace zapnuty – klikni pro vypnutí';
+    btn.classList.remove('bell-blocked');
   } else {
-    const isOptedIn = OneSignal.User.PushSubscription.optedIn;
-    btn.textContent = isOptedIn ? '🔔' : '🔕';
-    btn.title = isOptedIn ? 'Notifikace zapnuty – klikni pro vypnutí' : 'Zapnout notifikace o výsledcích';
-    btn.style.opacity = '';
+    btn.textContent = '🔕';
+    btn.title = 'Zapnout notifikace o výsledcích';
+    btn.classList.remove('bell-blocked');
   }
 }
 
@@ -2123,8 +2123,6 @@ function initOneSignal() {
       notifyButton: { enable: false },
       welcomeNotification: { disable: true },
     });
-    const btn = document.getElementById('bellBtn');
-    if (btn) btn.style.display = '';
     updateBellBtn();
     OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
   });
