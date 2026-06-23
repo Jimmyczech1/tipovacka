@@ -737,6 +737,7 @@ html.dark .poll-seg.away{background:#8b2020}
 
 <footer>
   Primární zdroj dat: <code>games.json</code> · Live API: <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a>
+  · <span style="opacity:.5">v20260623-2</span>
 </footer>
 
 <div id="notifOverlay" class="notif-overlay" style="display:none" role="dialog" aria-modal="true">
@@ -2303,12 +2304,18 @@ document.getElementById('notifOverlay').addEventListener('click', e => {
 
 function initOneSignal() {
   if (!ONESIGNAL_APP_ID) return;
+  // Pre-register the SW at the correct subdirectory path so OneSignal finds it
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/tipovacka/OneSignalSDKWorker.js', { scope: '/tipovacka/' })
+      .catch(e => console.warn('[SW pre-register]', e));
+  }
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
     try {
       await OneSignal.init({
         appId: ONESIGNAL_APP_ID,
         serviceWorkerPath: '/tipovacka/OneSignalSDKWorker.js',
+        serviceWorkerParam: { scope: '/tipovacka/' },
         autoPrompt: false,
         notifyButton: { enable: false },
         welcomeNotification: { disable: true },
