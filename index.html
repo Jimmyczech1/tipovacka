@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache"/>
 <title>Tipovačka MS 2026</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="pwa-icon.png"/>
@@ -2366,22 +2367,13 @@ initOneSignal();
     pulling = false;
     const t = parseFloat(badge.style.transform.match(/translateY\(calc\(-72px \+ ([\d.]+)px\)/)?.[1] || '0');
     if (t < THRESHOLD) { reset(); return; }
-    // Settle badge while loading
+    // Settle badge, brief spin, then full page reload so latest code is fetched
     badge.classList.add('ptr-spin');
     badge.style.transition = 'transform .2s ease';
     badge.style.transform = 'translateX(-50%) translateY(calc(-72px + 52px))';
-    try { await init(); } catch(_) {}
-    // Success state
-    badge.classList.remove('ptr-spin', 'ptr-ready');
-    badge.classList.add('ptr-done');
-    badge.style.background = 'var(--gd)';
-    ball.textContent = '✓';
     if (navigator.vibrate) navigator.vibrate(50);
-    await new Promise(r => setTimeout(r, 750));
-    ball.textContent = '⚽';
-    badge.classList.remove('ptr-done');
-    badge.style.background = '';
-    reset();
+    await new Promise(r => setTimeout(r, 400));
+    window.location.reload();
   });
 })();
 
