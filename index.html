@@ -589,6 +589,7 @@ html.dark .poll-seg.away{background:#8b2020}
 ═══════════════════════════════════════════════════════ */
 .bell-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:var(--rsm);color:#fff;cursor:pointer;font-size:.85rem;line-height:1.5;padding:.1rem .3rem;vertical-align:middle}
 .bell-btn:hover{background:rgba(255,255,255,.25)}
+.mc-me-gap{margin-top:.35rem;color:var(--gd);font-weight:600}
 
 /* ═══════════════════════════════════════════════════════
    REDUCED MOTION
@@ -929,11 +930,24 @@ function renderMovementCards() {
   const second = after.find(p => p.rank === 2);
   const leadStr = second ? ` · +${leader.pts - second.pts} b. před ${second.name}` : '';
 
+  const myName = localStorage.getItem('tipovacka_playerName');
+  const me = myName ? after.find(p => p.name === myName) : null;
+  let myGapHtml = '';
+  if (me) {
+    if (me.rank === 1) {
+      myGapHtml = `<div class="scs mc-me-gap">Jsi lídr! 🥇</div>`;
+    } else {
+      const gap = leader.pts - me.pts;
+      myGapHtml = `<div class="scs mc-me-gap">Tvůj odstup: −${gap} b. (ty máš ${me.pts})</div>`;
+    }
+  }
+
   let cards = `
     <div class="sc">
       <div class="scl">👑 Aktuální lídr</div>
       <div class="scv">${leader.name}</div>
       <div class="scs">${leader.pts} bodů${leadStr}</div>
+      ${myGapHtml}
     </div>`;
 
   if (rounds.length >= 2) {
@@ -1932,6 +1946,7 @@ function populateSelects() {
     if (psel.value) localStorage.setItem('tipovacka_playerName', psel.value);
     else localStorage.removeItem('tipovacka_playerName');
     renderNextMatch();
+    renderMovementCards();
   });
 }
 
