@@ -607,6 +607,23 @@ html.dark .poll-seg.away{background:#8b2020}
 .notif-deny{background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:var(--rmd);padding:.55rem 1.1rem;font-size:.9rem;cursor:pointer}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
+/* ── Pull to refresh ─────────────────────────────────── */
+#ptrBadge{
+  position:fixed;top:0;left:50%;z-index:5000;
+  transform:translateX(-50%) translateY(-72px);
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gm);box-shadow:var(--s2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+  transition:background .15s ease;
+  pointer-events:none;
+  will-change:transform;
+}
+#ptrBadge.ptr-ready{background:var(--gd)}
+#ptrBadge.ptr-spin .ptr-ball{animation:ptrSpin .5s linear infinite}
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
+.ptr-ball{display:block;line-height:1;transition:transform .1s}
+
 /* ═══════════════════════════════════════════════════════
    REDUCED MOTION
 ═══════════════════════════════════════════════════════ */
@@ -617,6 +634,7 @@ html.dark .poll-seg.away{background:#8b2020}
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
+<div id="ptrBadge" aria-hidden="true"><span class="ptr-ball">⚽</span></div>
 
 <header class="hdr">
   <img src="logo_HP_Electric_Blue_keyline.png" alt="HP"/>
@@ -2220,6 +2238,61 @@ function initOneSignal() {
 initOneSignal();
 
 /* ── Init ────────────────────────────────────────────── */
+/* ── Pull-to-refresh ─────────────────────────────────── */
+(function() {
+  const THRESHOLD = 72;   // px of pull needed to trigger refresh
+  const MAX_PULL  = 110;  // px at which badge stops following finger
+  const badge = document.getElementById('ptrBadge');
+  const ball  = badge.querySelector('.ptr-ball');
+  let startY = 0, pulling = false, triggered = false;
+
+  function setBadgeY(y) {
+    // y = 0..MAX_PULL → badge goes from -72 to +16 (peeking below header)
+    const t = Math.min(y, MAX_PULL);
+    const ease = t < THRESHOLD ? t : THRESHOLD + (t - THRESHOLD) * 0.25;
+    badge.style.transform = `translateX(-50%) translateY(calc(-72px + ${ease}px))`;
+    // Rotate ball proportionally to pull distance
+    const deg = (t / THRESHOLD) * 360;
+    ball.style.transform = `rotate(${deg}deg)`;
+    badge.classList.toggle('ptr-ready', t >= THRESHOLD);
+  }
+
+  function reset() {
+    badge.style.transition = 'transform .35s cubic-bezier(.22,1,.36,1)';
+    badge.style.transform = 'translateX(-50%) translateY(-72px)';
+    ball.style.transform = '';
+    badge.classList.remove('ptr-ready', 'ptr-spin');
+    setTimeout(() => { badge.style.transition = ''; }, 380);
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY > 0) return;
+    startY = e.touches[0].clientY;
+    pulling = true;
+    triggered = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy <= 0) { pulling = false; return; }
+    setBadgeY(dy);
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!pulling) return;
+    pulling = false;
+    const t = parseFloat(badge.style.transform.match(/translateY\(calc\(-72px \+ ([\d.]+)px\)/)?.[1] || '0');
+    if (t < THRESHOLD) { reset(); return; }
+    // Trigger refresh
+    badge.classList.add('ptr-spin');
+    badge.style.transition = 'transform .2s ease';
+    badge.style.transform = 'translateX(-50%) translateY(calc(-72px + 52px))'; // settle at +52
+    try { await init(); } catch(_) {}
+    reset();
+  });
+})();
+
 async function init() {
   try {
     await loadPlayers();
