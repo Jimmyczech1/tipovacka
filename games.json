@@ -537,9 +537,9 @@
       "awayTeam": "Uzbekistan",
       "kickoff": "2026-06-23 12:00",
       "stadiumId": "5",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 5,
+      "awayScore": 0
     },
     {
       "id": "46",
@@ -573,9 +573,9 @@
       "awayTeam": "Ghana",
       "kickoff": "2026-06-23 16:00",
       "stadiumId": "9",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
       "id": "49",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-06-23 12:48",
+  "lastUpdate": "2026-06-24 00:50",
   "updateSource": "auto"
 }
