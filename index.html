@@ -2074,57 +2074,88 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
 updateThemeBtn();
 
 /* ── OneSignal push notifications ───────────────────── */
+let _osReady = false;
+
 function updateBellBtn() {
   const btn = document.getElementById('bellBtn');
   if (!btn) return;
   if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
     btn.textContent = '🔕';
-    btn.title = 'Notifikace jsou zablokované – klikni pro návod jak je zapnout';
+    btn.title = 'Notifikace zablokované – klikni pro návod';
     btn.classList.add('bell-blocked');
-  } else if (window.OneSignal && OneSignal.User.PushSubscription.optedIn) {
-    btn.textContent = '🔔';
-    btn.title = 'Notifikace zapnuty – klikni pro vypnutí';
-    btn.classList.remove('bell-blocked');
-  } else {
-    btn.textContent = '🔕';
-    btn.title = 'Zapnout notifikace o výsledcích';
-    btn.classList.remove('bell-blocked');
+    return;
   }
+  if (_osReady && window.OneSignal) {
+    try {
+      const on = OneSignal.User.PushSubscription.optedIn;
+      btn.textContent = on ? '🔔' : '🔕';
+      btn.title = on ? 'Notifikace zapnuty – klikni pro vypnutí' : 'Zapnout notifikace o výsledcích';
+    } catch (_) { /* subscription not yet available */ }
+  }
+  btn.classList.remove('bell-blocked');
 }
 
 document.getElementById('bellBtn').addEventListener('click', async () => {
-  if (!window.OneSignal) return;
-  if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+  // iOS: web push only works in Safari with site added to home screen
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
     alert(
-      'Notifikace jsou zablokované v prohlížeči.\n\n' +
-      'Jak je znovu zapnout:\n' +
-      '• Chrome / Edge: klikni na 🔒 v adresním řádku → Nastavení webu → Oznámení → Povolit\n' +
-      '• Safari (iOS): Nastavení → Safari → Weby → Oznámení → tipovacka → Povolit\n' +
-      '• Firefox: klikni na 🔒 → Oprávnění → Zobrazovat oznámení → Povolit'
+      'Na iOS fungují notifikace pouze v Safari a vyžadují přidání webu na plochu.\n\n' +
+      '1. Otevři tipovacka v Safari\n' +
+      '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
+      '3. Otevři nově přidanou ikonu a klikni 🔕'
     );
     return;
   }
-  if (OneSignal.User.PushSubscription.optedIn) {
-    await OneSignal.User.PushSubscription.optOut();
-  } else {
-    await OneSignal.User.PushSubscription.optIn();
+  if (typeof Notification === 'undefined') {
+    alert('Tvůj prohlížeč nepodporuje webové notifikace.');
+    return;
   }
-  updateBellBtn();
+  if (Notification.permission === 'denied') {
+    alert(
+      'Notifikace jsou zablokované v prohlížeči.\n\n' +
+      'Jak je znovu zapnout:\n' +
+      '• Chrome/Edge: 🔒 v adresním řádku → Nastavení webu → Oznámení → Povolit\n' +
+      '• Firefox: 🔒 → Oprávnění → Zobrazovat oznámení → Povolit\n' +
+      '• Safari (Mac): Předvolby Safari → Weby → Oznámení → Povolit'
+    );
+    return;
+  }
+  if (!_osReady || !window.OneSignal) {
+    alert('Notifikace se ještě inicializují, zkus to za chvíli.');
+    return;
+  }
+  try {
+    if (OneSignal.User.PushSubscription.optedIn) {
+      await OneSignal.User.PushSubscription.optOut();
+    } else {
+      await OneSignal.User.PushSubscription.optIn();
+    }
+    updateBellBtn();
+  } catch (e) {
+    console.error('[OneSignal] subscription error:', e);
+    alert('Nepodařilo se přihlásit k notifikacím.\nChyba: ' + e.message);
+  }
 });
 
 function initOneSignal() {
   if (!ONESIGNAL_APP_ID) return;
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      serviceWorkerPath: 'OneSignalSDKWorker.js',
-      serviceWorkerParam: { scope: '/tipovacka/' },
-      notifyButton: { enable: false },
-      welcomeNotification: { disable: true },
-    });
-    updateBellBtn();
-    OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
+    try {
+      await OneSignal.init({
+        appId: ONESIGNAL_APP_ID,
+        serviceWorkerPath: 'OneSignalSDKWorker.js',
+        notifyButton: { enable: false },
+        welcomeNotification: { disable: true },
+      });
+      _osReady = true;
+      updateBellBtn();
+      OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
+    } catch (e) {
+      console.error('[OneSignal] init error:', e);
+    }
   });
 }
 
