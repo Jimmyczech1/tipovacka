@@ -427,6 +427,10 @@ a{color:inherit;text-decoration:none}
 ═══════════════════════════════════════════════════════ */
 .team-form{display:flex;gap:3px}
 .tform-dot{width:16px;height:16px;border-radius:3px;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.team-wdl{display:flex;gap:5px;font-size:.78rem;font-weight:700}
+.team-wdl .tw{color:#22a84a}.team-wdl .td{color:var(--mut)}.team-wdl .tl{color:#e05252}
+.teams-filter{width:100%;padding:.55rem .9rem;border:1px solid var(--brd);border-radius:var(--rmd);background:var(--sur);color:var(--txt);font-size:.92rem;margin-bottom:1rem;box-sizing:border-box}
+.teams-filter:focus{outline:none;border-color:var(--gm)}
 
 /* ═══════════════════════════════════════════════════════
    FOOTER
@@ -496,7 +500,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
     gap:1px;
     background:var(--brd);
   }
-  .tbtn:last-child{grid-column:1/-1}
+  /* 6 tabs fit evenly in 2-column grid – no spanning needed */
   .tbtn{
     border-bottom:none;
     border:none;
@@ -621,7 +625,9 @@ html.dark .poll-seg.away{background:#8b2020}
 }
 #ptrBadge.ptr-ready{background:var(--gd)}
 #ptrBadge.ptr-spin .ptr-ball{animation:ptrSpin .5s linear infinite}
+#ptrBadge.ptr-done .ptr-ball{animation:ptrCheck .3s cubic-bezier(.34,1.56,.64,1) forwards;font-size:1.3rem;font-weight:700;color:#fff}
 @keyframes ptrSpin{to{transform:rotate(360deg)}}
+@keyframes ptrCheck{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 .ptr-ball{display:block;line-height:1;transition:transform .1s}
 
 /* ═══════════════════════════════════════════════════════
@@ -658,6 +664,7 @@ html.dark .poll-seg.away{background:#8b2020}
   <button class="tbtn"        data-tab="tipy"       role="tab">📋 Tipy hráčů</button>
   <button class="tbtn"        data-tab="vitez"      role="tab">🌍 Vítěz MS</button>
   <button class="tbtn"        data-tab="statistiky" role="tab">📊 Statistiky</button>
+  <button class="tbtn"        data-tab="zeme"       role="tab">🗺️ Země</button>
 </nav>
 
 <main>
@@ -715,6 +722,14 @@ html.dark .poll-seg.away{background:#8b2020}
     <div class="wrap">
       <p class="stitle">📊 Statistiky</p>
       <div id="statsEl"><p class="emsg">⏳ Statistiky se naplní po odehrání prvních zápasů.</p></div>
+    </div>
+  </section>
+
+  <section class="tpanel" id="panel-zeme" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">🗺️ Přehled zemí</p>
+      <input class="teams-filter" id="teamsFilter" type="search" placeholder="Hledat zemi…" autocomplete="off"/>
+      <div class="cgrid" id="teamsGrid"></div>
     </div>
   </section>
 </main>
@@ -1982,6 +1997,63 @@ async function loadGames() {
   }
 }
 
+/* ── Render: Země ────────────────────────────────────── */
+function renderTeams(filterVal) {
+  const el = document.getElementById('teamsGrid');
+  if (!el) return;
+  const teamMap = {};
+  gamesCache.forEach(g => {
+    [g._home, g._away].forEach(team => {
+      if (!team) return;
+      if (!teamMap[team]) teamMap[team] = [];
+      teamMap[team].push(g);
+    });
+  });
+  let teams = Object.keys(teamMap).sort((a, b) => a.localeCompare(b, 'cs'));
+  const q = (filterVal ?? document.getElementById('teamsFilter')?.value ?? '').toLowerCase().trim();
+  if (q) teams = teams.filter(t => t.toLowerCase().includes(q));
+  if (!teams.length) {
+    el.innerHTML = '<p class="emsg">Žádná shoda.</p>';
+    return;
+  }
+  el.innerHTML = teams.map(team => {
+    const games = teamMap[team].slice().sort((a, b) =>
+      (a._ko ? kickoffInstant(a) : Infinity) - (b._ko ? kickoffInstant(b) : Infinity));
+    let w = 0, d = 0, l = 0;
+    games.forEach(g => {
+      if (!g._fin || g._hs == null) return;
+      const isH = g._home === team, ts = isH ? g._hs : g._as, os = isH ? g._as : g._hs;
+      if (ts > os) w++; else if (ts === os) d++; else l++;
+    });
+    const played = w + d + l;
+    const wdlHtml = played > 0
+      ? `<span class="team-wdl"><span class="tw">${w}V</span><span class="td">${d}R</span><span class="tl">${l}P</span></span>`
+      : '';
+    const rows = games.map(g => {
+      const isH = g._home === team, opp = isH ? g._away : g._home;
+      let sh;
+      if (g._fin && g._hs != null) {
+        const ts = isH ? g._hs : g._as, os = isH ? g._as : g._hs;
+        const cls = ts > os ? 'sw' : ts < os ? 'sl' : 'sd';
+        sh = `<span class="cms ${cls}">${ts}:${os}</span>`;
+      } else {
+        sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
+      }
+      const venue = isH ? 'D' : 'V';
+      return `<div class="cmrow"><span class="t"><small style="color:var(--mut);margin-right:3px">${venue}</small>vs ${opp}</span>${sh}</div>`;
+    }).join('');
+    return `<div class="ccard">
+      <div class="cch">
+        <span class="cct">${teamFlag(team)} ${team}</span>
+        ${wdlHtml}
+      </div>
+      <div class="ccb">
+        <div class="cmlist">${rows || '<div class="cmrow"><span class="t" style="color:var(--mut)">Zatím bez zápasů</span></div>'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderAll() {
   const fin   = gamesCache.filter(g => isFin(g));
   const total = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
@@ -1994,6 +2066,7 @@ function renderAll() {
   renderMovementCards();
   renderFormGuide();
   renderPointsChart();
+  renderTeams();
 }
 
 function populateSelects() {
@@ -2090,6 +2163,7 @@ document.getElementById('btnCompare').addEventListener('click', () => {
   if (n1) renderComparison(n1, n2 || null);
 });
 document.getElementById('btnAll').addEventListener('click', renderAllTips);
+document.getElementById('teamsFilter').addEventListener('input', () => renderTeams());
 
 /* ── Theme (dark / light / auto) ────────────────────── */
 (function() {
@@ -2144,13 +2218,18 @@ function updateBellBtn() {
 
 document.getElementById('bellBtn').addEventListener('click', async () => {
   if (typeof Notification === 'undefined') {
-    // iOS Safari outside PWA — Notification API not available until added to home screen
-    alert(
-      'Na iOS fungují notifikace pouze v Safari a vyžadují přidání webu na plochu.\n\n' +
-      '1. Otevři tipovacku v Safari\n' +
-      '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
-      '3. Otevři nově přidanou ikonu a klikni 🔕'
-    );
+    if (navigator.standalone) {
+      // Running as PWA but Notification API still missing → iOS < 16.4
+      alert('Tvůj iPhone bohužel nepodporuje web push notifikace.\n\nNotifikace přes web vyžadují iOS 16.4 nebo novější.');
+    } else {
+      // Regular Safari browser — needs to be added to home screen first
+      alert(
+        'Na iOS fungují notifikace pouze přes aplikaci přidanou na plochu.\n\n' +
+        '1. Otevři tipovacku v Safari\n' +
+        '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
+        '3. Otevři nově přidanou ikonu a klikni 🔕'
+      );
+    }
     return;
   }
   if (Notification.permission === 'denied') {
@@ -2289,24 +2368,15 @@ initOneSignal();
     badge.style.transition = 'transform .2s ease';
     badge.style.transform = 'translateX(-50%) translateY(calc(-72px + 52px))';
     try { await init(); } catch(_) {}
-    // Success state: swap ball for checkmark, scale up briefly
+    // Success state
     badge.classList.remove('ptr-spin', 'ptr-ready');
+    badge.classList.add('ptr-done');
     badge.style.background = 'var(--gd)';
-    ball.style.animation = 'none';
     ball.textContent = '✓';
-    ball.style.cssText = 'font-size:1.4rem;font-weight:700;color:#fff;line-height:1;transform:scale(0)';
-    badge.style.transition = 'transform .2s ease';
-    // Haptic pulse on devices that support it
     if (navigator.vibrate) navigator.vibrate(50);
-    // Animate checkmark in
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      ball.style.transition = 'transform .2s cubic-bezier(.34,1.56,.64,1)';
-      ball.style.transform = 'scale(1)';
-    }));
-    await new Promise(r => setTimeout(r, 700));
-    // Restore ball emoji before sliding away
+    await new Promise(r => setTimeout(r, 750));
     ball.textContent = '⚽';
-    ball.style.cssText = '';
+    badge.classList.remove('ptr-done');
     badge.style.background = '';
     reset();
   });
