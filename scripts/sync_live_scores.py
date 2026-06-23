@@ -17,6 +17,7 @@ Pravidla mergování
 """
 
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -28,9 +29,53 @@ except ImportError:
     print("ERROR: Modul 'requests' není nainstalovaný. Spusť: pip install requests")
     sys.exit(1)
 
-LIVE_API_URL    = "https://worldcup26.ir/get/games"
-GAMES_JSON_PATH = Path(__file__).parent.parent / "games.json"
-TIMEOUT_SEC     = 15
+LIVE_API_URL      = "https://worldcup26.ir/get/games"
+GAMES_JSON_PATH   = Path(__file__).parent.parent / "games.json"
+PREDICTIONS_PATH  = Path(__file__).parent.parent / "players_predictions.json"
+TIMEOUT_SEC       = 15
+ONESIGNAL_APP_ID  = os.environ.get("ONESIGNAL_APP_ID", "")
+ONESIGNAL_API_KEY = os.environ.get("ONESIGNAL_API_KEY", "")
+
+
+def count_exact_hits(game_id, home_score, away_score) -> int:
+    try:
+        with open(PREDICTIONS_PATH, encoding="utf-8") as f:
+            players = json.load(f)
+        return sum(
+            1 for p in players
+            if p.get("predictions", {}).get(str(game_id), {}).get("home") == home_score
+            and p.get("predictions", {}).get(str(game_id), {}).get("away") == away_score
+        )
+    except Exception:
+        return 0
+
+
+def send_result_notification(game, home_score, away_score):
+    if not ONESIGNAL_APP_ID or not ONESIGNAL_API_KEY:
+        return
+    exact = count_exact_hits(game.get("id"), home_score, away_score)
+    home  = game.get("homeTeam", "?")
+    away  = game.get("awayTeam", "?")
+    title = f"⚽ Výsledek: {home} vs {away}"
+    body  = f"{home} {home_score}:{away_score} {away}"
+    if exact:
+        body += f" · {exact}× přesný tip 🎯"
+    payload = {
+        "app_id":            ONESIGNAL_APP_ID,
+        "included_segments": ["All"],
+        "headings":  {"en": title, "cs": title},
+        "contents":  {"en": body,  "cs": body},
+    }
+    try:
+        resp = requests.post(
+            "https://onesignal.com/api/v1/notifications",
+            json=payload,
+            headers={"Authorization": f"Basic {ONESIGNAL_API_KEY}"},
+            timeout=10,
+        )
+        print(f"  [NOTIFY] {title} — HTTP {resp.status_code}")
+    except Exception as e:
+        print(f"  [NOTIFY] Chyba při odesílání notifikace: {e}")
 
 
 def is_finished(value) -> bool:
@@ -84,7 +129,8 @@ def main():
 
     remote_by_id = {str(g.get("id")): g for g in remote_games if g.get("id") is not None}
 
-    updated_count = 0
+    updated_count  = 0
+    finished_games = []
     for game in local_games:
         if game.get("finished"):
             continue  # manuální/dříve potvrzený výsledek je nedotknutelný
@@ -103,6 +149,7 @@ def main():
         game["awayScore"] = away_score
         print(f"  [UPDATE] {game.get('homeTeam')} {home_score}:{away_score} {game.get('awayTeam')} (id {game.get('id')})")
         updated_count += 1
+        finished_games.append((game, home_score, away_score))
 
     if updated_count > 0:
         local_data["lastUpdate"]   = datetime.now(ZoneInfo("Europe/Prague")).strftime("%Y-%m-%d %H:%M")
@@ -111,6 +158,8 @@ def main():
             json.dump(local_data, f, ensure_ascii=False, indent=2)
             f.write("\n")
         print(f"\n✓ Uloženo: {updated_count} nových výsledků")
+        for g, hs, as_ in finished_games:
+            send_result_notification(g, hs, as_)
     else:
         print("\n– Žádná změna")
 

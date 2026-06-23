@@ -29,6 +29,9 @@ jobs:
 
       - name: Run sync script
         run: python3 scripts/sync_live_scores.py
+        env:
+          ONESIGNAL_APP_ID:  ${{ secrets.ONESIGNAL_APP_ID }}
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
 
       - name: Commit and push if games.json changed
         run: |
