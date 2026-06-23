@@ -1,0 +1,18 @@
+{
+  "name": "Tipovačka MS 2026",
+  "short_name": "Tipovačka",
+  "description": "Živé pořadí tipovací soutěže MS ve fotbale 2026",
+  "icons": [
+    {
+      "src": "pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/tipovacka/",
+  "scope": "/tipovacka/",
+  "display": "standalone",
+  "background_color": "#0a4a2a",
+  "theme_color": "#0a4a2a"
+}

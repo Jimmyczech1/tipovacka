@@ -4,6 +4,11 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Tipovačka MS 2026</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="pwa-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tipovačka"/>
 <style>
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -2096,18 +2101,6 @@ function updateBellBtn() {
 }
 
 document.getElementById('bellBtn').addEventListener('click', async () => {
-  // iOS: web push only works in Safari with site added to home screen
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (isIOS) {
-    alert(
-      'Na iOS fungují notifikace pouze v Safari a vyžadují přidání webu na plochu.\n\n' +
-      '1. Otevři tipovacka v Safari\n' +
-      '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
-      '3. Otevři nově přidanou ikonu a klikni 🔕'
-    );
-    return;
-  }
   if (typeof Notification === 'undefined') {
     alert('Tvůj prohlížeč nepodporuje webové notifikace.');
     return;
@@ -2122,8 +2115,20 @@ document.getElementById('bellBtn').addEventListener('click', async () => {
     );
     return;
   }
+  // iOS without OneSignal ready = not added to home screen yet
   if (!_osReady || !window.OneSignal) {
-    alert('Notifikace se ještě inicializují, zkus to za chvíli.');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      alert(
+        'Na iOS fungují notifikace pouze v Safari a vyžadují přidání webu na plochu.\n\n' +
+        '1. Otevři tipovacka v Safari\n' +
+        '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
+        '3. Otevři nově přidanou ikonu a klikni 🔕'
+      );
+    } else {
+      alert('Notifikace se ještě inicializují, zkus to za chvíli.');
+    }
     return;
   }
   try {
@@ -2135,7 +2140,7 @@ document.getElementById('bellBtn').addEventListener('click', async () => {
     updateBellBtn();
   } catch (e) {
     console.error('[OneSignal] subscription error:', e);
-    alert('Nepodařilo se přihlásit k notifikacím.\nChyba: ' + e.message);
+    alert('Nepodařilo se změnit nastavení notifikací.\nChyba: ' + e.message);
   }
 });
 
