@@ -2017,8 +2017,11 @@ function renderTeams(filterVal) {
     return;
   }
   el.innerHTML = teams.map(team => {
-    const games = teamMap[team].slice().sort((a, b) =>
-      (a._ko ? kickoffInstant(a) : Infinity) - (b._ko ? kickoffInstant(b) : Infinity));
+    const games = teamMap[team].slice().sort((a, b) => {
+      const ka = a._ko ? (kickoffInstant(a._ko, a._stad) || new Date(0)) : new Date(9e15);
+      const kb = b._ko ? (kickoffInstant(b._ko, b._stad) || new Date(0)) : new Date(9e15);
+      return ka - kb;
+    });
     let w = 0, d = 0, l = 0;
     games.forEach(g => {
       if (!g._fin || g._hs == null) return;
