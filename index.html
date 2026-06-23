@@ -694,8 +694,7 @@ html.dark .poll-seg.away{background:#8b2020}
 const BASE_PTS    = 1;   // za správný výsledek
 const BONUS_PTS   = 2;   // za přesné skóre (+BASE = 3 celkem)
 const CHAMP_BONUS = 10;  // za vítěze MS
-// OneSignal: fill in your App ID (from onesignal.com) to enable push notifications
-const ONESIGNAL_APP_ID = '';
+const ONESIGNAL_APP_ID = '3df700e8-5121-45fd-9691-108d5fede930';
 let actualChampion = null;
 
 const STADIUM_OFFSETS = {
@@ -2078,6 +2077,8 @@ function initOneSignal() {
       appId: ONESIGNAL_APP_ID,
       serviceWorkerPath: 'OneSignalSDKWorker.js',
       serviceWorkerParam: { scope: '/tipovacka/' },
+      notifyButton: { enable: false },
+      welcomeNotification: { disable: true },
     });
     const btn = document.getElementById('bellBtn');
     if (btn) btn.style.display = '';
