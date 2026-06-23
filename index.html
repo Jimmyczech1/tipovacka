@@ -585,12 +585,19 @@ html.dark .nm-badge-live{background:#2a0e0e;color:#ff8585}
 html.dark .poll-seg.away{background:#8b2020}
 
 /* ═══════════════════════════════════════════════════════
+   BELL BUTTON (status bar notifications)
+═══════════════════════════════════════════════════════ */
+.bell-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:var(--rsm);color:#fff;cursor:pointer;font-size:.85rem;line-height:1.5;padding:.1rem .3rem;vertical-align:middle}
+.bell-btn:hover{background:rgba(255,255,255,.25)}
+
+/* ═══════════════════════════════════════════════════════
    REDUCED MOTION
 ═══════════════════════════════════════════════════════ */
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
 }
 </style>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
 
@@ -606,7 +613,7 @@ html.dark .poll-seg.away{background:#8b2020}
 <div class="sbar">
   <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
   <div class="si">🕐 <span id="updateLabel">Poslední aktualizace:</span>&nbsp;<span id="lastUpdated">–</span>&nbsp;<span id="updateBadge"></span></div>
-  <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select></div>
+  <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select>&nbsp;<button id="bellBtn" class="bell-btn" style="display:none" title="Zapnout notifikace o výsledcích">🔕</button></div>
 </div>
 
 <nav class="tnav" role="tablist">
@@ -622,6 +629,7 @@ html.dark .poll-seg.away{background:#8b2020}
     <div class="wrap">
       <p class="stitle">⚽ Zápasy</p>
       <div id="nextMatch"></div>
+      <div id="movementCards"></div>
 
       <p class="stitle" style="margin-top:1.75rem">🔥 Forma hráčů</p>
       <div id="formGuide"></div>
@@ -685,6 +693,8 @@ html.dark .poll-seg.away{background:#8b2020}
 const BASE_PTS    = 1;   // za správný výsledek
 const BONUS_PTS   = 2;   // za přesné skóre (+BASE = 3 celkem)
 const CHAMP_BONUS = 10;  // za vítěze MS
+// OneSignal: fill in your App ID (from onesignal.com) to enable push notifications
+const ONESIGNAL_APP_ID = '';
 let actualChampion = null;
 
 const STADIUM_OFFSETS = {
@@ -898,6 +908,78 @@ function computeRounds() {
     r.games.push(g);
   });
   return rounds;
+}
+
+/* ── Render: Pohyby v pořadí (movement cards) ─────────────────
+   Shows current leader + biggest rank climber/dropper since
+   the previous round (= previous date-key in computeRounds).
+   Inserted between the match carousel and Forma hráčů. */
+function renderMovementCards() {
+  const el = document.getElementById('movementCards');
+  if (!el) return;
+
+  const rounds = computeRounds();
+  if (!rounds.length) { el.innerHTML = ''; return; }
+
+  const allGames  = rounds.flatMap(r => r.games);
+  const after     = assignRanks(computeBoardSorted(allGames));
+  if (!after.length) { el.innerHTML = ''; return; }
+
+  const leader = after[0];
+  const second = after.find(p => p.rank === 2);
+  const leadStr = second ? ` · +${leader.pts - second.pts} b. před ${second.name}` : '';
+
+  let cards = `
+    <div class="sc">
+      <div class="scl">👑 Aktuální lídr</div>
+      <div class="scv">${leader.name}</div>
+      <div class="scs">${leader.pts} bodů${leadStr}</div>
+    </div>`;
+
+  if (rounds.length >= 2) {
+    const prevGames = rounds.slice(0, -1).flatMap(r => r.games);
+    const before    = assignRanks(computeBoardSorted(prevGames));
+    const beforeRank = {}, beforePts = {};
+    before.forEach(p => { beforeRank[p.name] = p.rank; beforePts[p.name] = p.pts; });
+
+    const movements = after.map(p => ({
+      name:      p.name,
+      ptsDelta:  p.pts - (beforePts[p.name] ?? 0),
+      rankDelta: (beforeRank[p.name] ?? after.length + 1) - p.rank,
+    }));
+
+    const skokan = movements
+      .filter(m => m.rankDelta > 0)
+      .sort((a, b) => b.rankDelta - a.rankDelta || b.ptsDelta - a.ptsDelta)[0];
+
+    const propad = movements
+      .filter(m => m.rankDelta < 0)
+      .sort((a, b) => a.rankDelta - b.rankDelta || a.ptsDelta - b.ptsDelta)[0];
+
+    if (skokan) {
+      const pos = Math.abs(skokan.rankDelta) === 1 ? '1 místo' : `${Math.abs(skokan.rankDelta)} míst`;
+      cards += `
+        <div class="sc">
+          <div class="scl">🚀 Skokan kola</div>
+          <div class="scv">${skokan.name}</div>
+          <div class="scs">↑ ${pos} nahoru · +${skokan.ptsDelta} bodů</div>
+        </div>`;
+    }
+
+    if (propad) {
+      const pos = Math.abs(propad.rankDelta) === 1 ? '1 místo' : `${Math.abs(propad.rankDelta)} míst`;
+      cards += `
+        <div class="sc">
+          <div class="scl">📉 Propad kola</div>
+          <div class="scv">${propad.name}</div>
+          <div class="scs">↓ ${pos} dolů · +${propad.ptsDelta} bodů</div>
+        </div>`;
+    }
+  }
+
+  el.innerHTML = `
+    <p class="stitle" style="margin-top:1.75rem">📊 Pohyby v pořadí</p>
+    <div class="sgrid">${cards}</div>`;
 }
 
 /* ── Helper: join a list of names, truncating long lists ────────
@@ -1826,6 +1908,7 @@ function renderAll() {
   renderChampionGrid();
   renderAllTips();
   renderNextMatch();
+  renderMovementCards();
   renderFormGuide();
   renderPointsChart();
 }
@@ -1952,6 +2035,43 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
 });
 
 updateThemeBtn();
+
+/* ── OneSignal push notifications ───────────────────── */
+function updateBellBtn() {
+  const btn = document.getElementById('bellBtn');
+  if (!btn || !window.OneSignal || !ONESIGNAL_APP_ID) return;
+  const isOptedIn = OneSignal.User.PushSubscription.optedIn;
+  btn.textContent = isOptedIn ? '🔔' : '🔕';
+  btn.title = isOptedIn ? 'Notifikace zapnuty – klikni pro vypnutí' : 'Zapnout notifikace o výsledcích';
+}
+
+document.getElementById('bellBtn').addEventListener('click', async () => {
+  if (!window.OneSignal) return;
+  if (OneSignal.User.PushSubscription.optedIn) {
+    await OneSignal.User.PushSubscription.optOut();
+  } else {
+    await OneSignal.User.PushSubscription.optIn();
+  }
+  updateBellBtn();
+});
+
+function initOneSignal() {
+  if (!ONESIGNAL_APP_ID) return;
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      serviceWorkerPath: 'OneSignalSDKWorker.js',
+      serviceWorkerParam: { scope: '/tipovacka/' },
+    });
+    const btn = document.getElementById('bellBtn');
+    if (btn) btn.style.display = '';
+    updateBellBtn();
+    OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
+  });
+}
+
+initOneSignal();
 
 /* ── Init ────────────────────────────────────────────── */
 async function init() {
