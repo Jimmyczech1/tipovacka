@@ -2199,6 +2199,7 @@ updateThemeBtn();
 
 /* ── OneSignal push notifications ───────────────────── */
 let _osReady = false;
+let _osInitError = null;
 
 function updateBellBtn() {
   const btn = document.getElementById('bellBtn');
@@ -2245,14 +2246,18 @@ document.getElementById('bellBtn').addEventListener('click', async () => {
     );
     return;
   }
-  // iOS without OneSignal ready = not added to home screen yet
   if (!_osReady || !window.OneSignal) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS) {
+    const inPWA = !!navigator.standalone;
+    if (inPWA && _osInitError) {
+      alert('Notifikace se nepodařilo aktivovat.\n\nChyba: ' + _osInitError);
+    } else if (inPWA) {
+      alert('Notifikace se ještě inicializují, zkus to za chvíli.');
+    } else if (isIOS) {
       alert(
-        'Na iOS fungují notifikace pouze v Safari a vyžadují přidání webu na plochu.\n\n' +
-        '1. Otevři tipovacka v Safari\n' +
+        'Na iOS fungují notifikace pouze přes aplikaci přidanou na plochu.\n\n' +
+        '1. Otevři tipovacku v Safari\n' +
         '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
         '3. Otevři nově přidanou ikonu a klikni 🔕'
       );
@@ -2307,12 +2312,12 @@ function initOneSignal() {
         autoPrompt: false,
         notifyButton: { enable: false },
         welcomeNotification: { disable: true },
-        promptOptions: { slidedown: { prompts: [] } },
       });
       _osReady = true;
       updateBellBtn();
       OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
     } catch (e) {
+      _osInitError = e.message || String(e);
       console.error('[OneSignal] init error:', e);
     }
   });
