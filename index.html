@@ -2284,11 +2284,30 @@ initOneSignal();
     pulling = false;
     const t = parseFloat(badge.style.transform.match(/translateY\(calc\(-72px \+ ([\d.]+)px\)/)?.[1] || '0');
     if (t < THRESHOLD) { reset(); return; }
-    // Trigger refresh
+    // Settle badge while loading
     badge.classList.add('ptr-spin');
     badge.style.transition = 'transform .2s ease';
-    badge.style.transform = 'translateX(-50%) translateY(calc(-72px + 52px))'; // settle at +52
+    badge.style.transform = 'translateX(-50%) translateY(calc(-72px + 52px))';
     try { await init(); } catch(_) {}
+    // Success state: swap ball for checkmark, scale up briefly
+    badge.classList.remove('ptr-spin', 'ptr-ready');
+    badge.style.background = 'var(--gd)';
+    ball.style.animation = 'none';
+    ball.textContent = '✓';
+    ball.style.cssText = 'font-size:1.4rem;font-weight:700;color:#fff;line-height:1;transform:scale(0)';
+    badge.style.transition = 'transform .2s ease';
+    // Haptic pulse on devices that support it
+    if (navigator.vibrate) navigator.vibrate(50);
+    // Animate checkmark in
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ball.style.transition = 'transform .2s cubic-bezier(.34,1.56,.64,1)';
+      ball.style.transform = 'scale(1)';
+    }));
+    await new Promise(r => setTimeout(r, 700));
+    // Restore ball emoji before sliding away
+    ball.textContent = '⚽';
+    ball.style.cssText = '';
+    badge.style.background = '';
     reset();
   });
 })();
