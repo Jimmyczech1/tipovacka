@@ -705,6 +705,17 @@ html.dark .poll-seg.away{background:#8b2020}
   Primární zdroj dat: <code>games.json</code> · Live API: <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a>
 </footer>
 
+<div id="notifOverlay" class="notif-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="notif-card">
+    <h3>🔔 Notifikace o výsledcích</h3>
+    <p>Dostávej zprávu ihned po odehrání každého zápasu – s výsledkem a informací, kolik hráčů tipovalo přesně. Notifikace přijdou i když máš prohlížeč zavřený.</p>
+    <div class="notif-actions">
+      <button class="notif-deny" id="notifDeny">Teď ne</button>
+      <button class="notif-allow" id="notifAllow">Zapnout 🔔</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 /* ── Config ──────────────────────────────────────────── */
@@ -2217,16 +2228,5 @@ async function init() {
 }
 init();
 </script>
-
-<div id="notifOverlay" class="notif-overlay" style="display:none" role="dialog" aria-modal="true">
-  <div class="notif-card">
-    <h3>🔔 Notifikace o výsledcích</h3>
-    <p>Dostávej zprávu ihned po odehrání každého zápasu – s výsledkem a informací, kolik hráčů tipovalo přesně. Notifikace přijdou i když máš prohlížeč zavřený.</p>
-    <div class="notif-actions">
-      <button class="notif-deny" id="notifDeny">Teď ne</button>
-      <button class="notif-allow" id="notifAllow">Zapnout 🔔</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
