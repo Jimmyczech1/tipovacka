@@ -595,6 +595,19 @@ html.dark .poll-seg.away{background:#8b2020}
 #bellBtn.bell-blocked{opacity:.5}
 
 /* ═══════════════════════════════════════════════════════
+   NOTIFICATION PROMPT MODAL
+═══════════════════════════════════════════════════════ */
+.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:1rem;animation:fadeIn .18s ease}
+.notif-card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rlg) var(--rlg) var(--rmd) var(--rmd);padding:1.4rem 1.5rem 1.5rem;max-width:440px;width:100%;box-shadow:var(--s2)}
+.notif-card h3{font-size:1.05rem;font-weight:700;margin-bottom:.45rem;display:flex;align-items:center;gap:.45rem}
+.notif-card p{font-size:.88rem;color:var(--mut);margin-bottom:1.25rem;line-height:1.55}
+.notif-actions{display:flex;gap:.6rem;justify-content:flex-end}
+.notif-allow{background:var(--gm);color:#fff;border:none;border-radius:var(--rmd);padding:.55rem 1.3rem;font-size:.9rem;font-weight:600;cursor:pointer}
+.notif-allow:hover{background:var(--gd)}
+.notif-deny{background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:var(--rmd);padding:.55rem 1.1rem;font-size:.9rem;cursor:pointer}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ═══════════════════════════════════════════════════════
    REDUCED MOTION
 ═══════════════════════════════════════════════════════ */
 @media(prefers-reduced-motion:reduce){
@@ -2134,13 +2147,35 @@ document.getElementById('bellBtn').addEventListener('click', async () => {
   try {
     if (OneSignal.User.PushSubscription.optedIn) {
       await OneSignal.User.PushSubscription.optOut();
+      updateBellBtn();
     } else {
-      await OneSignal.User.PushSubscription.optIn();
+      // Show Czech prompt before triggering the browser permission dialog
+      document.getElementById('notifOverlay').style.display = 'flex';
     }
-    updateBellBtn();
   } catch (e) {
     console.error('[OneSignal] subscription error:', e);
     alert('Nepodařilo se změnit nastavení notifikací.\nChyba: ' + e.message);
+  }
+});
+
+document.getElementById('notifAllow').addEventListener('click', async () => {
+  document.getElementById('notifOverlay').style.display = 'none';
+  try {
+    await OneSignal.User.PushSubscription.optIn();
+    updateBellBtn();
+  } catch (e) {
+    console.error('[OneSignal] optIn error:', e);
+    alert('Nepodařilo se zapnout notifikace.\nChyba: ' + e.message);
+  }
+});
+
+document.getElementById('notifDeny').addEventListener('click', () => {
+  document.getElementById('notifOverlay').style.display = 'none';
+});
+
+document.getElementById('notifOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.style.display = 'none';
   }
 });
 
@@ -2182,5 +2217,16 @@ async function init() {
 }
 init();
 </script>
+
+<div id="notifOverlay" class="notif-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="notif-card">
+    <h3>🔔 Notifikace o výsledcích</h3>
+    <p>Dostávej zprávu ihned po odehrání každého zápasu – s výsledkem a informací, kolik hráčů tipovalo přesně. Notifikace přijdou i když máš prohlížeč zavřený.</p>
+    <div class="notif-actions">
+      <button class="notif-deny" id="notifDeny">Teď ne</button>
+      <button class="notif-allow" id="notifAllow">Zapnout 🔔</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
