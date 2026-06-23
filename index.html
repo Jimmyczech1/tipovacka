@@ -1302,7 +1302,7 @@ function renderChampionGrid() {
       } else {
         sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
       }
-      return `<div class="cmrow"><span class="t">vs ${opp}</span>${sh}</div>`;
+      return `<div class="cmrow"><span class="t">${teamFlag(opp)} vs ${opp}</span>${sh}</div>`;
     }).join('');
 
     // Form: last up-to-3 finished results, oldest → newest
@@ -2043,7 +2043,7 @@ function renderTeams(filterVal) {
       } else {
         sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
       }
-      return `<div class="cmrow"><span class="t">vs ${opp}</span>${sh}</div>`;
+      return `<div class="cmrow"><span class="t">${teamFlag(opp)} vs ${opp}</span>${sh}</div>`;
     }).join('');
     return `<div class="ccard">
       <div class="cch">
