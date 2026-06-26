@@ -729,9 +729,9 @@
       "awayTeam": "Iraq",
       "kickoff": "2026-06-26 15:00",
       "stadiumId": "12",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 5,
+      "awayScore": 0
     },
     {
       "id": "62",
@@ -741,9 +741,9 @@
       "awayTeam": "France",
       "kickoff": "2026-06-26 15:00",
       "stadiumId": "9",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 4
     },
     {
       "id": "63",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-06-26 12:38",
+  "lastUpdate": "2026-06-26 23:51",
   "updateSource": "auto"
 }
