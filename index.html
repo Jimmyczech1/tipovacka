@@ -682,26 +682,20 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 .ko-lbt tbody tr:hover td{background:var(--gl)}
 
 /* Bracket (QF → SF → Final) */
-.ko-bracket-wrap{overflow-x:auto;padding-bottom:.5rem}
-.ko-bracket{display:flex;align-items:stretch;gap:0;min-height:380px}
-.ko-bcol{display:flex;flex-direction:column;flex:1;min-width:160px}
-.ko-bgap{flex:1}
-.ko-bconn{flex:0 0 20px;display:flex;flex-direction:column}
-.ko-bconn-seg{flex:1;position:relative}
-.ko-bconn-seg.top::after{content:'';position:absolute;right:0;top:50%;bottom:0;border-right:2px solid var(--brd)}
-.ko-bconn-seg.top::before{content:'';position:absolute;right:0;top:50%;width:20px;border-top:2px solid var(--brd)}
-.ko-bconn-seg.bot::after{content:'';position:absolute;right:0;top:0;bottom:50%;border-right:2px solid var(--brd)}
-.ko-bconn-seg.bot::before{content:'';position:absolute;right:0;bottom:50%;width:20px;border-top:2px solid var(--brd)}
-.ko-bconn-seg.single::before{content:'';position:absolute;right:0;top:50%;width:20px;border-top:2px solid var(--brd)}
-
-.ko-bmatch{flex:1;display:flex;flex-direction:column;justify-content:center;padding:.4rem .5rem}
-.ko-bmatch-inner{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rsm);padding:.45rem .6rem;font-size:.78rem;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:.2rem;cursor:pointer}
+/* Full bracket: equal-flex alignment across rounds */
+.ko-bfull-wrap{overflow-x:auto;padding-bottom:.5rem}
+.ko-bfull{display:flex;gap:6px;min-width:max-content;height:640px}
+.ko-bfull-col{display:flex;flex-direction:column;width:152px;flex-shrink:0}
+.ko-bfull-label{text-align:center;font-size:.68rem;font-weight:700;color:var(--mut);padding:.2rem 0 .35rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
+.ko-bfull-games{display:flex;flex-direction:column;flex:1;min-height:0}
+.ko-bslot{flex:1;display:flex;align-items:center;padding:2px 0;min-height:0}
+.ko-bmatch-inner{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rsm);padding:.3rem .45rem;font-size:.76rem;display:flex;flex-direction:column;justify-content:center;gap:.1rem;width:100%;box-sizing:border-box}
 .ko-bmatch-inner:hover{border-color:var(--gm)}
-.ko-bteam{display:flex;align-items:center;gap:.35rem;font-weight:600;line-height:1.2}
+.ko-bcard-tbd{opacity:.4;text-align:center;font-size:.72rem;padding:.4rem}
+.ko-bteam{display:flex;align-items:center;gap:.3rem;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ko-bteam.winner{color:var(--gd)}
-.ko-bscore{font-size:.72rem;font-weight:700;text-align:center;margin-top:.15rem}
+.ko-bscore{font-size:.7rem;font-weight:700;text-align:center;margin-top:.1rem}
 .ko-bscore.sw{color:var(--gm)}.ko-bscore.sd{color:#856404}.ko-bscore.sl{color:#e05252}
-.ko-bcol-label{text-align:center;font-size:.72rem;font-weight:700;color:var(--mut);padding:.3rem 0 .5rem;text-transform:uppercase;letter-spacing:.05em}
 
 /* 7th tab spans full width on mobile grid */
 @media(max-width:480px){
@@ -2512,30 +2506,31 @@ function getKOGames() {
   return (gamesCache || []).filter(g => roundIds.has(g.type));
 }
 
+// Hardcoded bracket tree: game ID → [homeFeederID, awayFeederID]
+const KO_BRACKET_FEEDERS = {
+  89:[74,77], 90:[73,75], 91:[76,78], 92:[79,80],
+  93:[83,84], 94:[81,82], 95:[86,88], 96:[85,87],
+  97:[89,90], 98:[93,94], 99:[91,92], 100:[95,96],
+  101:[97,98], 102:[99,100], 104:[101,102],
+};
+
 function calcKOScore(player) {
   const games = getKOGames();
   let pts = 0, correct = 0, exact = 0;
   for (const g of games) {
-    if (!g.finished || g.homeScore == null || g.awayScore == null) continue;
+    if (!g._fin || g._hs == null || g._as == null) continue;
     const tip = (player.predictions || {})[String(g.id)];
     if (!tip) continue;
     const round = KO_ROUNDS.find(r => r.id === g.type);
     if (!round) continue;
     const tipHome = Number(tip.home), tipAway = Number(tip.away);
-    const actHome = Number(g.homeScore), actAway = Number(g.awayScore);
-    // exact score
+    const actHome = Number(g._hs), actAway = Number(g._as);
     if (tipHome === actHome && tipAway === actAway) {
-      pts += round.correct + round.bonus;
-      exact++;
-      correct++;
+      pts += round.correct + round.bonus; exact++; correct++;
     } else {
-      // correct winner / draw
-      const tipWinner = tipHome > tipAway ? 'h' : tipHome < tipAway ? 'a' : 'd';
-      const actWinner = actHome > actAway ? 'h' : actHome < actAway ? 'a' : 'd';
-      if (tipWinner === actWinner) {
-        pts += round.correct;
-        correct++;
-      }
+      const tw = tipHome > tipAway ? 'h' : tipHome < tipAway ? 'a' : 'd';
+      const aw = actHome > actAway ? 'h' : actHome < actAway ? 'a' : 'd';
+      if (tw === aw) { pts += round.correct; correct++; }
     }
   }
   return { pts, correct, exact };
@@ -2550,7 +2545,7 @@ function renderKOLeaderboard() {
   const rows = _koPlayers.map(p => ({ name: p.name, ...calcKOScore(p) }));
   rows.sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.correct - a.correct);
 
-  const totalFinished = getKOGames().filter(g => g.finished).length;
+  const totalFinished = getKOGames().filter(g => g._fin).length;
   if (totalFinished === 0) {
     el.innerHTML = '<p class="emsg">⏳ KO zápasy ještě nezačaly. Výsledky se zobrazí po odehrání prvního zápasu.</p>';
     return;
@@ -2577,9 +2572,9 @@ function renderKOLeaderboard() {
 }
 
 function koScoreClass(tip, game) {
-  if (!game.finished || game.homeScore == null) return 'st';
+  if (!game._fin || game._hs == null) return 'st';
   const tipHome = Number(tip.home), tipAway = Number(tip.away);
-  const actHome = Number(game.homeScore), actAway = Number(game.awayScore);
+  const actHome = Number(game._hs), actAway = Number(game._as);
   if (tipHome === actHome && tipAway === actAway) return 'sw';
   const tw = tipHome > tipAway ? 'h' : tipHome < tipAway ? 'a' : 'd';
   const aw = actHome > actAway ? 'h' : actHome < actAway ? 'a' : 'd';
@@ -2597,10 +2592,10 @@ function renderKORounds() {
     if (!rGames.length) continue;
     html += `<p class="stitle" style="margin-top:1.25rem">${round.label} <small style="font-size:.75rem;font-weight:500;color:var(--mut)">(+${round.correct}/+${round.bonus})</small></p>`;
     for (const g of rGames) {
-      const scoreLabel = g.finished
-        ? `${g.homeScore}:${g.awayScore}`
+      const scoreLabel = g._fin
+        ? `${g._hs}:${g._as}`
         : (g._ko ? new Date(g._ko).toLocaleDateString('cs-CZ', {day:'numeric',month:'numeric'}) : '–');
-      const scoreClass = g.finished ? (Number(g.homeScore) > Number(g.awayScore) ? 'sw' : Number(g.homeScore) < Number(g.awayScore) ? 'sl' : 'sd') : 'st';
+      const scoreClass = g._fin ? (Number(g._hs) > Number(g._as) ? 'sw' : Number(g._hs) < Number(g._as) ? 'sl' : 'sd') : 'st';
 
       const preds = (_koPlayers || []).filter(p => p.predictions && p.predictions[String(g.id)]);
       const predsHtml = preds.map(p => {
@@ -2608,10 +2603,9 @@ function renderKORounds() {
         const sc = koScoreClass(tip, g);
         const round_ = KO_ROUNDS.find(r => r.id === g.type);
         let ptsLabel = '';
-        if (g.finished && round_) {
-          const cls_ = koScoreClass(tip, g);
-          if (cls_ === 'sw') ptsLabel = `+${round_.correct + round_.bonus}`;
-          else if (cls_ === 'sd') ptsLabel = `+${round_.correct}`;
+        if (g._fin && round_) {
+          if (sc === 'sw') ptsLabel = `+${round_.correct + round_.bonus}`;
+          else if (sc === 'sd') ptsLabel = `+${round_.correct}`;
           else ptsLabel = '0';
         }
         return `<div class="ko-pred-row">
@@ -2624,9 +2618,9 @@ function renderKORounds() {
       html += `<div class="ko-game" data-gid="${g.id}">
         <div class="ko-game-head">
           <div class="ko-teams">
-            <span class="ko-team">${teamFlag(g.homeTeam)} ${g.homeTeam}</span>
+            <span class="ko-team">${teamFlag(g._home)} ${g._home}</span>
             <span class="ko-score ${scoreClass}">${scoreLabel}</span>
-            <span class="ko-team away">${g.awayTeam} ${teamFlag(g.awayTeam)}</span>
+            <span class="ko-team away">${g._away} ${teamFlag(g._away)}</span>
           </div>
           <span class="ko-expand-icon">▼</span>
         </div>
@@ -2646,94 +2640,68 @@ function renderKORounds() {
 function renderKOBracket() {
   const el = document.getElementById('ko-panel-pavouk');
   const games = getKOGames();
+  if (!games.length) { el.innerHTML = '<p class="emsg">⏳ KO zápasy nenalezeny.</p>'; return; }
 
   const byId = {};
   games.forEach(g => { byId[g.id] = g; });
 
-  function matchBox(g) {
-    if (!g) return '<div class="ko-bmatch"><div class="ko-bmatch-inner" style="opacity:.4">TBD</div></div>';
-    const scoreLabel = g.finished ? `${g.homeScore}:${g.awayScore}` : '';
-    const hWin = g.finished && Number(g.homeScore) > Number(g.awayScore);
-    const aWin = g.finished && Number(g.homeScore) < Number(g.awayScore);
-    return `<div class="ko-bmatch">
-      <div class="ko-bmatch-inner">
-        <div class="ko-bteam ${hWin ? 'winner' : ''}">${teamFlag(g.homeTeam)} ${g.homeTeam}</div>
-        <div class="ko-bteam ${aWin ? 'winner' : ''}">${teamFlag(g.awayTeam)} ${g.awayTeam}</div>
-        ${scoreLabel ? `<div class="ko-bscore ${hWin ? 'sw' : aWin ? 'sl' : 'sd'}">${scoreLabel}</div>` : ''}
-      </div>
+  // DFS from Final using hardcoded bracket tree → produces correct top-to-bottom bracket order
+  const bracketOrder = { r32: [], r16: [], qf: [], sf: [], final: [] };
+  const visited = new Set();
+  function visitGame(id) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    (KO_BRACKET_FEEDERS[id] || []).forEach(visitGame);
+    const g = byId[id];
+    if (g && bracketOrder[g.type]) bracketOrder[g.type].push(g);
+  }
+  visitGame(104);
+
+  function shortName(name) {
+    if (!name) return 'TBD';
+    const wm = name.match(/Winner\s+Match\s+(\d+)/i);    if (wm) return `W${wm[1]}`;
+    const lm = name.match(/Loser\s+Match\s+(\d+)/i);     if (lm) return `L${lm[1]}`;
+    const rug = name.match(/Runner[-\s]up\s+Group\s+([A-Z])/i); if (rug) return `2. ${rug[1]}`;
+    const wg = name.match(/Winner\s+Group\s+([A-Z])/i);  if (wg) return `1. ${wg[1]}`;
+    return name;
+  }
+
+  function matchCard(g) {
+    if (!g) return `<div class="ko-bmatch-inner ko-bcard-tbd">TBD</div>`;
+    const hWin = g._fin && Number(g._hs) > Number(g._as);
+    const aWin = g._fin && Number(g._hs) < Number(g._as);
+    return `<div class="ko-bmatch-inner">
+      <div class="ko-bteam ${hWin ? 'winner' : ''}">${teamFlag(g._home)} ${shortName(g._home)}</div>
+      <div class="ko-bteam ${aWin ? 'winner' : ''}">${teamFlag(g._away)} ${shortName(g._away)}</div>
+      ${g._fin ? `<div class="ko-bscore ${hWin?'sw':aWin?'sl':'sd'}">${g._hs}:${g._as}</div>` : ''}
     </div>`;
   }
 
-  // QF → SF → Final columns
-  const qfs = games.filter(g => g.type === 'qf').sort((a,b) => a.id - b.id);
-  const sfs = games.filter(g => g.type === 'sf').sort((a,b) => a.id - b.id);
-  const final_ = games.find(g => g.type === 'final');
-  const third_ = games.find(g => g.type === 'third');
+  const ROUND_COLS = [
+    { id:'r32', label:'Šestnáctifinále' },
+    { id:'r16', label:'Osmifinále' },
+    { id:'qf',  label:'Čtvrtfinále' },
+    { id:'sf',  label:'Semifinále' },
+    { id:'final', label:'Finále' },
+  ];
 
-  if (!qfs.length) { el.innerHTML = '<p class="emsg">⏳ Bracket bude k dispozici od čtvrtfinále.</p>'; return; }
-
-  // Build bracket: QF (4 matches) → SF (2) → Final (1)
-  // Top half: QF[0],QF[1] → SF[0]; Bottom half: QF[2],QF[3] → SF[1]
-  const topHalfHtml = `
-    <div class="ko-bcol">
-      <div class="ko-bcol-label">Čtvrtfinále</div>
-      ${matchBox(qfs[0])}
-      <div class="ko-bgap" style="flex:0 0 16px"></div>
-      ${matchBox(qfs[1])}
-    </div>
-    <div class="ko-bconn">
-      <div class="ko-bcol-label" style="visibility:hidden">·</div>
-      <div class="ko-bconn-seg top"></div>
-      <div class="ko-bconn-seg bot"></div>
-    </div>
-    <div class="ko-bcol">
-      <div class="ko-bcol-label">Semifinále</div>
-      <div class="ko-bgap"></div>
-      ${matchBox(sfs[0])}
-      <div class="ko-bgap"></div>
+  let html = '<div class="ko-bfull-wrap"><div class="ko-bfull">';
+  for (const rc of ROUND_COLS) {
+    const gms = bracketOrder[rc.id];
+    if (!gms || !gms.length) continue;
+    html += `<div class="ko-bfull-col">
+      <div class="ko-bfull-label">${rc.label}</div>
+      <div class="ko-bfull-games">${gms.map(g => `<div class="ko-bslot">${matchCard(g)}</div>`).join('')}</div>
     </div>`;
+  }
+  html += '</div></div>';
 
-  const botHalfHtml = `
-    <div class="ko-bcol">
-      <div class="ko-bcol-label" style="visibility:hidden">·</div>
-      ${matchBox(qfs[2])}
-      <div class="ko-bgap" style="flex:0 0 16px"></div>
-      ${matchBox(qfs[3])}
-    </div>
-    <div class="ko-bconn">
-      <div class="ko-bcol-label" style="visibility:hidden">·</div>
-      <div class="ko-bconn-seg top"></div>
-      <div class="ko-bconn-seg bot"></div>
-    </div>
-    <div class="ko-bcol">
-      <div class="ko-bcol-label" style="visibility:hidden">·</div>
-      <div class="ko-bgap"></div>
-      ${matchBox(sfs[1])}
-      <div class="ko-bgap"></div>
-    </div>`;
-
-  const finalColHtml = `
-    <div class="ko-bconn">
-      <div class="ko-bcol-label" style="visibility:hidden">·</div>
-      <div class="ko-bconn-seg top"></div>
-      <div class="ko-bconn-seg bot"></div>
-    </div>
-    <div class="ko-bcol">
-      <div class="ko-bcol-label">Finále</div>
-      <div class="ko-bgap"></div>
-      ${matchBox(final_)}
-      <div class="ko-bgap"></div>
-    </div>`;
-
-  el.innerHTML = `
-    <div class="ko-bracket-wrap">
-      <div class="ko-bracket">
-        ${topHalfHtml}
-        ${botHalfHtml}
-        ${finalColHtml}
-      </div>
-    </div>
-    ${third_ ? `<p class="stitle" style="margin-top:1.5rem">O 3. místo</p>${matchBox(third_)}` : ''}`;
+  const third = byId[103];
+  if (third) {
+    html += `<p class="stitle" style="margin-top:1.5rem">O 3. místo</p>
+      <div style="max-width:280px">${matchCard(third)}</div>`;
+  }
+  el.innerHTML = html;
 }
 
 // Sub-navigation inside Playoff tab
