@@ -697,6 +697,10 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 .ko-bscore{font-size:.7rem;font-weight:700;text-align:center;margin-top:.1rem}
 .ko-bscore.sw{color:var(--gm)}.ko-bscore.sd{color:#856404}.ko-bscore.sl{color:#e05252}
 
+/* Rules panel */
+.ko-rules p{font-size:.88rem;line-height:1.6;margin:.4rem 0 .9rem}
+.ko-rules strong{font-weight:700}
+
 /* 7th tab spans full width on mobile grid */
 @media(max-width:480px){
   .tbtn:nth-child(7){grid-column:1/-1}
@@ -813,10 +817,12 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
         <button class="ko-subbtn active" data-kosub="poradi">🏆 Pořadí</button>
         <button class="ko-subbtn" data-kosub="kola">📋 Kola</button>
         <button class="ko-subbtn" data-kosub="pavouk">🕸️ Pavouk</button>
+        <button class="ko-subbtn" data-kosub="pravidla">📜 Pravidla</button>
       </nav>
       <div id="ko-panel-poradi"></div>
       <div id="ko-panel-kola" style="display:none"></div>
       <div id="ko-panel-pavouk" style="display:none"></div>
+      <div id="ko-panel-pravidla" style="display:none"></div>
     </div>
   </section>
 </main>
@@ -2480,7 +2486,7 @@ initOneSignal();
 ══════════════════════════════════════════════════════ */
 
 const KO_ROUNDS = [
-  { id: 'r32',   label: 'Šestnáctifinále', correct: 1, bonus: 2 },
+  { id: 'r32',   label: '1. kolo play off', correct: 1, bonus: 2 },
   { id: 'r16',   label: 'Osmifinále',      correct: 2, bonus: 3 },
   { id: 'qf',    label: 'Čtvrtfinále',     correct: 3, bonus: 4 },
   { id: 'sf',    label: 'Semifinále',      correct: 4, bonus: 5 },
@@ -2678,7 +2684,7 @@ function renderKOBracket() {
   }
 
   const ROUND_COLS = [
-    { id:'r32', label:'Šestnáctifinále' },
+    { id:'r32', label:'1. kolo play off' },
     { id:'r16', label:'Osmifinále' },
     { id:'qf',  label:'Čtvrtfinále' },
     { id:'sf',  label:'Semifinále' },
@@ -2711,13 +2717,90 @@ document.getElementById('koSubnav').addEventListener('click', e => {
   const sub = btn.dataset.kosub;
   document.querySelectorAll('.ko-subbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['poradi','kola','pavouk'].forEach(id => {
+  ['poradi','kola','pavouk','pravidla'].forEach(id => {
     document.getElementById('ko-panel-' + id).style.display = id === sub ? '' : 'none';
   });
   if (sub === 'poradi') renderKOLeaderboard();
   else if (sub === 'kola') renderKORounds();
   else if (sub === 'pavouk') renderKOBracket();
+  else if (sub === 'pravidla') renderKORules();
 });
+
+function renderKORules() {
+  const el = document.getElementById('ko-panel-pravidla');
+  if (el.dataset.rendered) return;
+  el.dataset.rendered = '1';
+  el.innerHTML = `
+<div class="ko-rules">
+
+  <p class="stitle" style="margin-top:.25rem">O soutěži</p>
+  <p>Vyřazovací část je <strong>samostatná soutěž</strong> oddělená od té základní. Body ze skupinové fáze (48 zápasů + tip vítěze MS za 10 bodů) do ní nevstupují a naopak. Každý startuje od nuly — díky tomu mají šanci i ti, kteří na skupinách bodovali méně.</p>
+
+  <p class="stitle">Bodování</p>
+  <table class="ko-lbt" style="margin-bottom:.75rem">
+    <thead><tr>
+      <th>Kolo</th>
+      <th style="text-align:right">Správný výsledek</th>
+      <th style="text-align:right">+ přesné skóre</th>
+      <th style="text-align:right">Celkem za přesný tip</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>1. kolo play off</td><td style="text-align:right">1 bod</td><td style="text-align:right">+2 body</td><td style="text-align:right"><strong>3 body</strong></td></tr>
+      <tr><td>Osmifinále</td>      <td style="text-align:right">2 body</td><td style="text-align:right">+3 body</td><td style="text-align:right"><strong>5 bodů</strong></td></tr>
+      <tr><td>Čtvrtfinále</td>     <td style="text-align:right">3 body</td><td style="text-align:right">+4 body</td><td style="text-align:right"><strong>7 bodů</strong></td></tr>
+      <tr><td>Semifinále</td>      <td style="text-align:right">4 body</td><td style="text-align:right">+5 bodů</td><td style="text-align:right"><strong>9 bodů</strong></td></tr>
+      <tr><td>O 3. místo</td>      <td style="text-align:right">4 body</td><td style="text-align:right">+5 bodů</td><td style="text-align:right"><strong>9 bodů</strong></td></tr>
+      <tr><td>Finále</td>          <td style="text-align:right">5 bodů</td><td style="text-align:right">+6 bodů</td><td style="text-align:right"><strong>11 bodů</strong></td></tr>
+    </tbody>
+  </table>
+  <p><strong>Správný výsledek</strong> = uhodneš, kdo postoupí (vítěz nebo remíza v základní hrací době). <strong>Přesné skóre</strong> = navíc uhádneš i přesný počet gólů. Bodování roste s každým kolem záměrně — čím víc postupují silnější týmy, tím těžší je skóre přesně odhadnout, a tomu odpovídá i odměna.</p>
+
+  <p class="stitle">Termíny odevzdání tipů</p>
+  <p>Tipy na každé kolo je nutné odevzdat <strong>před zahájením prvního zápasu daného kola</strong>. Přehled oken pro odevzdání:</p>
+  <table class="ko-lbt" style="margin-bottom:.75rem">
+    <thead><tr>
+      <th>Kolo</th>
+      <th>Zápasy</th>
+      <th>Tipy odevzdat nejpozději</th>
+      <th>Okno pro tipy</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>1. kolo play off</td>
+        <td style="color:var(--mut);font-size:.82rem">28. 6. – 3. 7.</td>
+        <td><strong>28. 6. do 12:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">hned teď</td>
+      </tr>
+      <tr>
+        <td>Osmifinále</td>
+        <td style="color:var(--mut);font-size:.82rem">4. 7. – 7. 7.</td>
+        <td><strong>4. 7. do 12:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">3. 7. večer&nbsp;→&nbsp;4. 7. ráno ⚠️</td>
+      </tr>
+      <tr>
+        <td>Čtvrtfinále</td>
+        <td style="color:var(--mut);font-size:.82rem">9. 7. – 11. 7.</td>
+        <td><strong>9. 7. do 16:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">7. 7. odpoledne&nbsp;→&nbsp;9. 7.</td>
+      </tr>
+      <tr>
+        <td>Semifinále</td>
+        <td style="color:var(--mut);font-size:.82rem">14. 7. – 15. 7.</td>
+        <td><strong>14. 7. do 14:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">11. 7. večer&nbsp;→&nbsp;14. 7.</td>
+      </tr>
+      <tr>
+        <td>Finále + O 3. místo</td>
+        <td style="color:var(--mut);font-size:.82rem">18. 7. – 19. 7.</td>
+        <td><strong>18. 7. do 17:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">15. 7. odpoledne&nbsp;→&nbsp;18. 7.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:.84rem;color:var(--mut)">⚠️ Okno před osmifinále je velmi krátké — poslední zápas 1. kola je 3. 7. ve 20:30 a osmifinále startuje už 4. 7. v&nbsp;12:00. Tipy na osmifinále je ideální odevzdat ihned po skončení 1. kola.</p>
+
+</div>`;
+}
 
 async function initKO() {
   await loadKOPlayers();
