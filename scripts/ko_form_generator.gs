@@ -1,10 +1,16 @@
 // ═══════════════════════════════════════════════════════════════
 // KO Tipovačka – Google Apps Script
-// Použití:
-//   1. Nastav PLAYERS a ROUNDS níže dle aktuálního kola
-//   2. Spusť createKORoundForm() → vznikne Form + Sheet
-//   3. Pošli odkaz na formulář hráčům
-//   4. Po uzávěrce spusť exportKOPredictions() → zkopíruj JSON do repozitáře
+//
+// Použití pro každé kolo:
+//   1. Uprav ROUND_NAME a GAMES níže dle aktuálního kola
+//   2. Spusť createKORoundForm() → vznikne Form + Sheet, zkopíruj odkaz hráčům
+//   3. Po uzávěrce spusť exportKOPredictions() → zkopíruj JSON výstup
+//      do players_predictions_ko.json v repozitáři a commitni
+//
+// Tipy z předchozích kol se ZACHOVAJÍ – script merguje nové tipy
+// do záložky "Předchozí tipy" v Sheetu. Před exportem 2.+ kola
+// vlož aktuální obsah players_predictions_ko.json do buňky A1
+// záložky "Předchozí tipy" (záložka se vytvoří automaticky).
 // ═══════════════════════════════════════════════════════════════
 
 // ── Konfigurace hráčů ────────────────────────────────────────
@@ -41,12 +47,10 @@ const PLAYERS = [
 ];
 
 // ── Zápasy daného kola ────────────────────────────────────────
-// Před každým kolem uprav tuto sekci dle aktuálních párů.
-// id = číslo zápasu z games.json (pro export do JSON)
-// home/away = skutečné názvy týmů (jakmile jsou známy ze skupin)
-const ROUND_NAME = "1. kolo play off"; // změní se pro každé kolo
+// Uprav před každým kolem. id = číslo zápasu z games.json.
+const ROUND_NAME = "1. kolo play off"; // "Osmifinále" / "Čtvrtfinále" / atd.
 const GAMES = [
-  // Příklady – nahraď skutečnými páry po skončení skupin:
+  // Nahraď "TBD" skutečnými jmény týmů po skončení skupin (27.6. po 21:00):
   { id: 73,  home: "TBD", away: "TBD" },
   { id: 74,  home: "TBD", away: "TBD" },
   { id: 75,  home: "TBD", away: "TBD" },
@@ -63,19 +67,19 @@ const GAMES = [
   { id: 86,  home: "TBD", away: "TBD" },
   { id: 87,  home: "TBD", away: "TBD" },
   { id: 88,  home: "TBD", away: "TBD" },
+  // Pro osmifinále použij id: 89–96, pro čtvrtfinále 97–100, atd.
 ];
 
 // ════════════════════════════════════════════════════════════════
-// KROK 1: Vytvoř formulář
+// KROK 1: Vytvoř formulář pro aktuální kolo
 // ════════════════════════════════════════════════════════════════
 function createKORoundForm() {
   const title = `Tipovačka MS 2026 – ${ROUND_NAME}`;
 
-  // Vytvoř formulář
   const form = FormApp.create(title);
   form.setTitle(title);
   form.setDescription(
-    `Zadej svoje tipy na výsledky zápasů ${ROUND_NAME}.\n` +
+    `Zadej svoje tipy na výsledky zápasů – ${ROUND_NAME}.\n` +
     `Tipy jsou konečné – po odeslání nelze měnit.\n` +
     `Vyplň každé pole celým číslem (0, 1, 2, …).`
   );
@@ -83,13 +87,13 @@ function createKORoundForm() {
   form.setLimitOneResponsePerUser(false);
   form.setAllowResponseEdits(false);
 
-  // Jméno hráče
+  // Jméno hráče – dropdown, žádné překlepy
   const nameItem = form.addListItem();
   nameItem.setTitle("Tvoje jméno");
   nameItem.setRequired(true);
   nameItem.setChoices(PLAYERS.map(p => nameItem.createChoice(p)));
 
-  // Zápasy
+  // Otázky pro každý zápas
   GAMES.forEach((game, i) => {
     form.addSectionHeaderItem()
       .setTitle(`Zápas ${i + 1}  ·  ${game.home} vs ${game.away}`);
@@ -117,32 +121,36 @@ function createKORoundForm() {
     );
   });
 
-  // Propoj s Google Sheets (automaticky vytvoří nový Sheet)
+  // Vytvoř Sheet a propoj s formulářem
   const ss = SpreadsheetApp.create(`Tipovačka KO – ${ROUND_NAME} – Odpovědi`);
   form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
 
-  // Ulož ID sheetu do Properties pro pozdější export
+  // Vytvoř záložku "Předchozí tipy" pro merge při exportu
+  const prevSheet = ss.insertSheet("Předchozí tipy");
+  prevSheet.getRange(1, 1).setValue(
+    "── Sem vlož obsah players_predictions_ko.json před spuštěním exportKOPredictions() ──\n" +
+    "Smaž tento text a vlož JSON. Pro 1. kolo tuto záložku nech prázdnou."
+  );
+  prevSheet.getRange(1, 1).setFontColor("#999999");
+
+  // Ulož ID sheetu pro pozdější export
   PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
   PropertiesService.getScriptProperties().setProperty('ROUND_NAME', ROUND_NAME);
 
-  Logger.log("✅ Formulář vytvořen: " + form.getPublishedUrl());
-  Logger.log("✅ Sheet vytvořen: " + ss.getUrl());
-  Logger.log("📋 Zkopíruj odkaz na formulář a pošli hráčům.");
-
-  // Zobraz URL v dialogu (pokud spouštíš v browseru)
-  try {
-    SpreadsheetApp.getUi().alert(
-      "Formulář vytvořen!\n\n" +
-      "Odkaz pro hráče:\n" + form.getPublishedUrl() + "\n\n" +
-      "Sheet s odpověďmi:\n" + ss.getUrl()
-    );
-  } catch(e) {
-    // Běží z editoru skriptů – viz log výše
-  }
+  Logger.log("✅ Formulář: " + form.getPublishedUrl());
+  Logger.log("✅ Sheet:    " + ss.getUrl());
+  Logger.log("📋 Pošli odkaz hráčům. Před exportem vlož stávající JSON do záložky 'Předchozí tipy'.");
 }
 
 // ════════════════════════════════════════════════════════════════
-// KROK 2: Exportuj tipy jako JSON (spusť po uzávěrce)
+// KROK 2: Exportuj tipy – merguje nové kolo se stávajícími tipy
+//
+// Před spuštěním pro 2.+ kolo:
+//   1. Otevři Sheet (odkaz v logu z createKORoundForm)
+//   2. Klikni na záložku "Předchozí tipy"
+//   3. Smaž instrukční text v A1
+//   4. Vlož (Ctrl+V) aktuální obsah players_predictions_ko.json do A1
+//   5. Spusť exportKOPredictions()
 // ════════════════════════════════════════════════════════════════
 function exportKOPredictions() {
   const sheetId = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
@@ -152,38 +160,62 @@ function exportKOPredictions() {
   }
 
   const ss = SpreadsheetApp.openById(sheetId);
-  const sheet = ss.getSheets()[0]; // první sheet = odpovědi formuláře
-  const data  = sheet.getDataRange().getValues();
+
+  // ── Načti stávající tipy z "Předchozí tipy" záložky (pokud existují) ──
+  const playerMap = {};
+  PLAYERS.forEach(name => { playerMap[name] = { name, predictions: {} }; });
+
+  const prevSheet = ss.getSheetByName("Předchozí tipy");
+  if (prevSheet) {
+    const prevVal = prevSheet.getRange(1, 1).getValue();
+    if (prevVal && String(prevVal).trim().startsWith('[')) {
+      try {
+        const existing = JSON.parse(String(prevVal).trim());
+        existing.forEach(p => {
+          if (playerMap[p.name]) {
+            playerMap[p.name].predictions = Object.assign({}, p.predictions || {});
+          }
+        });
+        Logger.log("✅ Načteny stávající tipy z předchozích kol.");
+      } catch(e) {
+        Logger.log("⚠️ Nepodařilo se načíst předchozí tipy: " + e.message);
+        Logger.log("   Zkontroluj, zda je v záložce 'Předchozí tipy' platný JSON.");
+      }
+    } else {
+      Logger.log("ℹ️  Záložka 'Předchozí tipy' je prázdná – exportuji pouze toto kolo.");
+    }
+  }
+
+  // ── Načti odpovědi formuláře ──
+  const formSheet = ss.getSheets()[0];
+  const data = formSheet.getDataRange().getValues();
 
   if (data.length < 2) {
-    Logger.log("⚠️ Žádné odpovědi zatím.");
+    Logger.log("⚠️ Žádné odpovědi formuláře zatím.");
     return;
   }
 
-  const headers = data[0]; // řádek s nadpisy (generovaný automaticky z formuláře)
+  const headers = data[0];
+  const nameCol = headers.findIndex(
+    h => String(h).toLowerCase().includes("jméno") || String(h).toLowerCase().includes("jmeno")
+  );
 
-  // Zjisti indexy sloupců
-  const nameCol = headers.findIndex(h => String(h).toLowerCase().includes("jméno") || String(h).toLowerCase().includes("jmeno"));
-
-  // Sestav mapping: gameId → [homeColIndex, awayColIndex]
-  // Sloupce formuláře vypadají jako: "Zápas 1  ·  Team A vs Team B [Section]", "Team A – góly", "Team B – góly"
-  const gameColMap = {}; // gameId → { homeIdx, awayIdx }
-  GAMES.forEach((game, i) => {
-    const homeTitle = `${game.home} – góly`;
-    const awayTitle = `${game.away} – góly`;
-    const homeIdx = headers.findIndex(h => String(h) === homeTitle);
-    const awayIdx = headers.findIndex(h => String(h) === awayTitle);
+  // Mapuj sloupce formuláře na ID zápasů
+  const gameColMap = {};
+  GAMES.forEach(game => {
+    const homeIdx = headers.findIndex(h => String(h) === `${game.home} – góly`);
+    const awayIdx = headers.findIndex(h => String(h) === `${game.away} – góly`);
     if (homeIdx >= 0 && awayIdx >= 0) {
       gameColMap[game.id] = { homeIdx, awayIdx };
     }
   });
 
-  // Načti stávající players_predictions_ko.json strukturu (pouze jména)
-  // Pokud nemáme přístup k souboru, vytvoříme základ z PLAYERS
-  const playerMap = {};
-  PLAYERS.forEach(name => { playerMap[name] = { name, predictions: {} }; });
+  if (Object.keys(gameColMap).length === 0) {
+    Logger.log("❌ Nepodařilo se namapovat sloupce – zkontroluj, zda GAMES odpovídají formuláři.");
+    return;
+  }
 
-  // Zpracuj odpovědi (přeskočí duplicity – bere poslední odpověď hráče)
+  // Zpracuj odpovědi – bere POSLEDNÍ odpověď každého hráče (přepíše předchozí)
   for (let r = 1; r < data.length; r++) {
     const row  = data[r];
     const name = String(row[nameCol] || '').trim();
@@ -193,28 +225,24 @@ function exportKOPredictions() {
       const home = parseInt(row[homeIdx], 10);
       const away = parseInt(row[awayIdx], 10);
       if (!isNaN(home) && !isNaN(away)) {
-        playerMap[name].predictions[gameId] = { home, away };
+        playerMap[name].predictions[String(gameId)] = { home, away };
       }
     });
   }
 
-  // Výstupní JSON
+  // ── Výstup ──
   const result = Object.values(playerMap);
   const json = JSON.stringify(result, null, 2);
 
-  Logger.log("════ players_predictions_ko.json ════");
-  Logger.log(json);
-  Logger.log("═════════════════════════════════════");
-  Logger.log("Zkopíruj výše uvedený JSON do souboru players_predictions_ko.json v repozitáři a commitni.");
+  // Ulož do záložky "JSON Export" pro snadné kopírování
+  let outSheet = ss.getSheetByName("JSON Export");
+  if (!outSheet) outSheet = ss.insertSheet("JSON Export");
+  outSheet.clearContents();
+  outSheet.getRange(1, 1).setValue(json);
 
-  // Ulož výstup do nového sheetu pro snazší kopírování
-  try {
-    let outSheet = ss.getSheetByName("JSON Export");
-    if (!outSheet) outSheet = ss.insertSheet("JSON Export");
-    outSheet.clearContents();
-    outSheet.getRange(1, 1).setValue(json);
-    Logger.log("✅ JSON uložen do záložky 'JSON Export' ve Sheetu.");
-  } catch(e) {
-    Logger.log("Poznámka: " + e.message);
-  }
+  Logger.log("════════════════════════════════════════");
+  Logger.log("✅ Hotovo! JSON je uložen v záložce 'JSON Export' Sheetu.");
+  Logger.log("   Otevři Sheet → záložka 'JSON Export' → zkopíruj obsah A1");
+  Logger.log("   → vlož do players_predictions_ko.json → commitni do gitu.");
+  Logger.log("════════════════════════════════════════");
 }
