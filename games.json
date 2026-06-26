@@ -537,9 +537,9 @@
       "awayTeam": "Uzbekistan",
       "kickoff": "2026-06-23 12:00",
       "stadiumId": "5",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 5,
+      "awayScore": 0
     },
     {
       "id": "46",
@@ -549,9 +549,9 @@
       "awayTeam": "Croatia",
       "kickoff": "2026-06-23 19:00",
       "stadiumId": "12",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 1
     },
     {
       "id": "47",
@@ -561,9 +561,9 @@
       "awayTeam": "Democratic Republic of the Congo",
       "kickoff": "2026-06-23 20:00",
       "stadiumId": "2",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 0
     },
     {
       "id": "48",
@@ -573,9 +573,9 @@
       "awayTeam": "Ghana",
       "kickoff": "2026-06-23 16:00",
       "stadiumId": "9",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
       "id": "49",
@@ -585,9 +585,9 @@
       "awayTeam": "Brazil",
       "kickoff": "2026-06-24 18:00",
       "stadiumId": "8",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 3
     },
     {
       "id": "50",
@@ -597,9 +597,9 @@
       "awayTeam": "Haiti",
       "kickoff": "2026-06-24 18:00",
       "stadiumId": "7",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 4,
+      "awayScore": 2
     },
     {
       "id": "51",
@@ -609,9 +609,9 @@
       "awayTeam": "South Korea",
       "kickoff": "2026-06-24 19:00",
       "stadiumId": "3",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 0
     },
     {
       "id": "52",
@@ -621,9 +621,9 @@
       "awayTeam": "Mexico",
       "kickoff": "2026-06-24 19:00",
       "stadiumId": "1",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 3
     },
     {
       "id": "53",
@@ -633,9 +633,9 @@
       "awayTeam": "Qatar",
       "kickoff": "2026-06-24 12:00",
       "stadiumId": "14",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 3,
+      "awayScore": 1
     },
     {
       "id": "54",
@@ -645,9 +645,9 @@
       "awayTeam": "Canada",
       "kickoff": "2026-06-24 12:00",
       "stadiumId": "13",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
       "id": "55",
@@ -657,9 +657,9 @@
       "awayTeam": "Ivory Coast",
       "kickoff": "2026-06-25 16:00",
       "stadiumId": "10",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 2
     },
     {
       "id": "56",
@@ -669,9 +669,9 @@
       "awayTeam": "Germany",
       "kickoff": "2026-06-25 16:00",
       "stadiumId": "11",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
       "id": "57",
@@ -681,9 +681,9 @@
       "awayTeam": "Australia",
       "kickoff": "2026-06-25 19:00",
       "stadiumId": "15",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
       "id": "58",
@@ -693,9 +693,9 @@
       "awayTeam": "United States",
       "kickoff": "2026-06-25 19:00",
       "stadiumId": "16",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 3,
+      "awayScore": 2
     },
     {
       "id": "59",
@@ -705,9 +705,9 @@
       "awayTeam": "Sweden",
       "kickoff": "2026-06-25 18:00",
       "stadiumId": "4",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
       "id": "60",
@@ -717,9 +717,9 @@
       "awayTeam": "Netherlands",
       "kickoff": "2026-06-25 18:00",
       "stadiumId": "6",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 3
     },
     {
       "id": "61",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-06-23 12:48",
+  "lastUpdate": "2026-06-26 12:38",
   "updateSource": "auto"
 }

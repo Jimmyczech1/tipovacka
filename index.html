@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache"/>
 <title>Tipovačka MS 2026</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="pwa-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tipovačka"/>
 <style>
 /* ═══════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -422,6 +428,10 @@ a{color:inherit;text-decoration:none}
 ═══════════════════════════════════════════════════════ */
 .team-form{display:flex;gap:3px}
 .tform-dot{width:16px;height:16px;border-radius:3px;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.team-wdl{display:flex;gap:5px;font-size:.78rem;font-weight:700}
+.team-wdl .tw{color:#22a84a}.team-wdl .td{color:var(--mut)}.team-wdl .tl{color:#e05252}
+.teams-filter{width:100%;padding:.55rem .9rem;border:1px solid var(--brd);border-radius:var(--rmd);background:var(--sur);color:var(--txt);font-size:.92rem;margin-bottom:1rem;box-sizing:border-box}
+.teams-filter:focus{outline:none;border-color:var(--gm)}
 
 /* ═══════════════════════════════════════════════════════
    FOOTER
@@ -491,7 +501,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
     gap:1px;
     background:var(--brd);
   }
-  .tbtn:last-child{grid-column:1/-1}
+  /* 6 tabs fit evenly in 2-column grid – no spanning needed */
   .tbtn{
     border-bottom:none;
     border:none;
@@ -590,6 +600,38 @@ html.dark .poll-seg.away{background:#8b2020}
 #bellBtn.bell-blocked{opacity:.5}
 
 /* ═══════════════════════════════════════════════════════
+   NOTIFICATION PROMPT MODAL
+═══════════════════════════════════════════════════════ */
+.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:1rem;animation:fadeIn .18s ease}
+.notif-card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rlg) var(--rlg) var(--rmd) var(--rmd);padding:1.4rem 1.5rem 1.5rem;max-width:440px;width:100%;box-shadow:var(--s2)}
+.notif-card h3{font-size:1.05rem;font-weight:700;margin-bottom:.45rem;display:flex;align-items:center;gap:.45rem}
+.notif-card p{font-size:.88rem;color:var(--mut);margin-bottom:1.25rem;line-height:1.55}
+.notif-actions{display:flex;gap:.6rem;justify-content:flex-end}
+.notif-allow{background:var(--gm);color:#fff;border:none;border-radius:var(--rmd);padding:.55rem 1.3rem;font-size:.9rem;font-weight:600;cursor:pointer}
+.notif-allow:hover{background:var(--gd)}
+.notif-deny{background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:var(--rmd);padding:.55rem 1.1rem;font-size:.9rem;cursor:pointer}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Pull to refresh ─────────────────────────────────── */
+#ptrBadge{
+  position:fixed;top:0;left:50%;z-index:5000;
+  transform:translateX(-50%) translateY(-72px);
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gm);box-shadow:var(--s2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+  transition:background .15s ease;
+  pointer-events:none;
+  will-change:transform;
+}
+#ptrBadge.ptr-ready{background:var(--gd)}
+#ptrBadge.ptr-spin .ptr-ball{animation:ptrSpin .5s linear infinite}
+#ptrBadge.ptr-done .ptr-ball{animation:ptrCheck .3s cubic-bezier(.34,1.56,.64,1) forwards;font-size:1.3rem;font-weight:700;color:#fff}
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
+@keyframes ptrCheck{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.ptr-ball{display:block;line-height:1;transition:transform .1s}
+
+/* ═══════════════════════════════════════════════════════
    REDUCED MOTION
 ═══════════════════════════════════════════════════════ */
 @media(prefers-reduced-motion:reduce){
@@ -599,6 +641,7 @@ html.dark .poll-seg.away{background:#8b2020}
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
+<div id="ptrBadge" aria-hidden="true"><span class="ptr-ball">⚽</span></div>
 
 <header class="hdr">
   <img src="logo_HP_Electric_Blue_keyline.png" alt="HP"/>
@@ -606,7 +649,7 @@ html.dark .poll-seg.away{background:#8b2020}
     <h1>Tipovací soutěž – MS ve fotbale 2026 ⚽</h1>
     <p>Živé pořadí na základě výsledků zápasů</p>
   </div>
-  <button id="bellBtn" class="theme-btn" aria-label="Notifikace">🔕</button>
+  <button id="bellBtn" class="theme-btn" aria-label="Notifikace" style="display:none">🔕</button>
   <button id="themeBtn" class="theme-btn" aria-label="Přepnout vzhled">🌙</button>
 </header>
 
@@ -622,6 +665,7 @@ html.dark .poll-seg.away{background:#8b2020}
   <button class="tbtn"        data-tab="tipy"       role="tab">📋 Tipy hráčů</button>
   <button class="tbtn"        data-tab="vitez"      role="tab">🌍 Vítěz MS</button>
   <button class="tbtn"        data-tab="statistiky" role="tab">📊 Statistiky</button>
+  <button class="tbtn"        data-tab="zeme"       role="tab">🗺️ Země</button>
 </nav>
 
 <main>
@@ -681,11 +725,31 @@ html.dark .poll-seg.away{background:#8b2020}
       <div id="statsEl"><p class="emsg">⏳ Statistiky se naplní po odehrání prvních zápasů.</p></div>
     </div>
   </section>
+
+  <section class="tpanel" id="panel-zeme" role="tabpanel">
+    <div class="wrap">
+      <p class="stitle">🗺️ Přehled zemí</p>
+      <input class="teams-filter" id="teamsFilter" type="search" placeholder="Hledat zemi…" autocomplete="off"/>
+      <div class="cgrid" id="teamsGrid"></div>
+    </div>
+  </section>
 </main>
 
 <footer>
   Primární zdroj dat: <code>games.json</code> · Live API: <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a>
+  · <span style="opacity:.5">v20260623-2</span>
 </footer>
+
+<div id="notifOverlay" class="notif-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="notif-card">
+    <h3>🔔 Notifikace o výsledcích</h3>
+    <p>Dostávej zprávu ihned po odehrání každého zápasu – s výsledkem a informací, kolik hráčů tipovalo přesně. Notifikace přijdou i když máš prohlížeč zavřený.</p>
+    <div class="notif-actions">
+      <button class="notif-deny" id="notifDeny">Teď ne</button>
+      <button class="notif-allow" id="notifAllow">Zapnout 🔔</button>
+    </div>
+  </div>
+</div>
 
 <script>
 'use strict';
@@ -1239,7 +1303,7 @@ function renderChampionGrid() {
       } else {
         sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
       }
-      return `<div class="cmrow"><span class="t">vs ${opp}</span>${sh}</div>`;
+      return `<div class="cmrow"><span class="t">${teamFlag(opp)} vs ${opp}</span>${sh}</div>`;
     }).join('');
 
     // Form: last up-to-3 finished results, oldest → newest
@@ -1935,6 +1999,65 @@ async function loadGames() {
   }
 }
 
+/* ── Render: Země ────────────────────────────────────── */
+function renderTeams(filterVal) {
+  const el = document.getElementById('teamsGrid');
+  if (!el) return;
+  const teamMap = {};
+  gamesCache.forEach(g => {
+    [g._home, g._away].forEach(team => {
+      if (!team) return;
+      if (!teamMap[team]) teamMap[team] = [];
+      teamMap[team].push(g);
+    });
+  });
+  let teams = Object.keys(teamMap).sort((a, b) => a.localeCompare(b, 'cs'));
+  const q = (filterVal ?? document.getElementById('teamsFilter')?.value ?? '').toLowerCase().trim();
+  if (q) teams = teams.filter(t => t.toLowerCase().includes(q));
+  if (!teams.length) {
+    el.innerHTML = '<p class="emsg">Žádná shoda.</p>';
+    return;
+  }
+  el.innerHTML = teams.map(team => {
+    const games = teamMap[team].slice().sort((a, b) => {
+      const ka = a._ko ? (kickoffInstant(a._ko, a._stad) || new Date(0)) : new Date(9e15);
+      const kb = b._ko ? (kickoffInstant(b._ko, b._stad) || new Date(0)) : new Date(9e15);
+      return ka - kb;
+    });
+    let w = 0, d = 0, l = 0;
+    games.forEach(g => {
+      if (!g._fin || g._hs == null) return;
+      const isH = g._home === team, ts = isH ? g._hs : g._as, os = isH ? g._as : g._hs;
+      if (ts > os) w++; else if (ts === os) d++; else l++;
+    });
+    const played = w + d + l;
+    const wdlHtml = played > 0
+      ? `<span class="team-wdl"><span class="tw">${w}V</span><span class="td">${d}R</span><span class="tl">${l}P</span></span>`
+      : '';
+    const rows = games.map(g => {
+      const isH = g._home === team, opp = isH ? g._away : g._home;
+      let sh;
+      if (g._fin && g._hs != null) {
+        const ts = isH ? g._hs : g._as, os = isH ? g._as : g._hs;
+        const cls = ts > os ? 'sw' : ts < os ? 'sl' : 'sd';
+        sh = `<span class="cms ${cls}">${ts}:${os}</span>`;
+      } else {
+        sh = `<span class="cms st">${formatKickoff(g._ko, g._stad) || 'TBD'}</span>`;
+      }
+      return `<div class="cmrow"><span class="t">${teamFlag(opp)} vs ${opp}</span>${sh}</div>`;
+    }).join('');
+    return `<div class="ccard">
+      <div class="cch">
+        <span class="cct">${teamFlag(team)} ${team}</span>
+        ${wdlHtml}
+      </div>
+      <div class="ccb">
+        <div class="cmlist">${rows || '<div class="cmrow"><span class="t" style="color:var(--mut)">Zatím bez zápasů</span></div>'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderAll() {
   const fin   = gamesCache.filter(g => isFin(g));
   const total = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
@@ -1947,6 +2070,7 @@ function renderAll() {
   renderMovementCards();
   renderFormGuide();
   renderPointsChart();
+  renderTeams();
 }
 
 function populateSelects() {
@@ -2043,6 +2167,7 @@ document.getElementById('btnCompare').addEventListener('click', () => {
   if (n1) renderComparison(n1, n2 || null);
 });
 document.getElementById('btnAll').addEventListener('click', renderAllTips);
+document.getElementById('teamsFilter').addEventListener('input', () => renderTeams());
 
 /* ── Theme (dark / light / auto) ────────────────────── */
 (function() {
@@ -2074,63 +2199,196 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
 updateThemeBtn();
 
 /* ── OneSignal push notifications ───────────────────── */
+let _osReady = false;
+let _osInitError = null;
+
 function updateBellBtn() {
   const btn = document.getElementById('bellBtn');
   if (!btn) return;
   if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
     btn.textContent = '🔕';
-    btn.title = 'Notifikace jsou zablokované – klikni pro návod jak je zapnout';
+    btn.title = 'Notifikace zablokované – klikni pro návod';
     btn.classList.add('bell-blocked');
-  } else if (window.OneSignal && OneSignal.User.PushSubscription.optedIn) {
-    btn.textContent = '🔔';
-    btn.title = 'Notifikace zapnuty – klikni pro vypnutí';
-    btn.classList.remove('bell-blocked');
-  } else {
-    btn.textContent = '🔕';
-    btn.title = 'Zapnout notifikace o výsledcích';
-    btn.classList.remove('bell-blocked');
+    return;
   }
+  if (_osReady && window.OneSignal) {
+    try {
+      const on = OneSignal.User.PushSubscription.optedIn;
+      btn.textContent = on ? '🔔' : '🔕';
+      btn.title = on ? 'Notifikace zapnuty – klikni pro vypnutí' : 'Zapnout notifikace o výsledcích';
+    } catch (_) { /* subscription not yet available */ }
+  }
+  btn.classList.remove('bell-blocked');
 }
 
 document.getElementById('bellBtn').addEventListener('click', async () => {
-  if (!window.OneSignal) return;
-  if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+  if (typeof Notification === 'undefined') {
+    if (navigator.standalone) {
+      // Running as PWA but Notification API still missing → iOS < 16.4
+      alert('Tvůj iPhone bohužel nepodporuje web push notifikace.\n\nNotifikace přes web vyžadují iOS 16.4 nebo novější.');
+    } else {
+      // Regular Safari browser — needs to be added to home screen first
+      alert(
+        'Na iOS fungují notifikace pouze přes aplikaci přidanou na plochu.\n\n' +
+        '1. Otevři tipovacku v Safari\n' +
+        '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
+        '3. Otevři nově přidanou ikonu a klikni 🔕'
+      );
+    }
+    return;
+  }
+  if (Notification.permission === 'denied') {
     alert(
       'Notifikace jsou zablokované v prohlížeči.\n\n' +
       'Jak je znovu zapnout:\n' +
-      '• Chrome / Edge: klikni na 🔒 v adresním řádku → Nastavení webu → Oznámení → Povolit\n' +
-      '• Safari (iOS): Nastavení → Safari → Weby → Oznámení → tipovacka → Povolit\n' +
-      '• Firefox: klikni na 🔒 → Oprávnění → Zobrazovat oznámení → Povolit'
+      '• Chrome/Edge: 🔒 v adresním řádku → Nastavení webu → Oznámení → Povolit\n' +
+      '• Firefox: 🔒 → Oprávnění → Zobrazovat oznámení → Povolit\n' +
+      '• Safari (Mac): Předvolby Safari → Weby → Oznámení → Povolit'
     );
     return;
   }
-  if (OneSignal.User.PushSubscription.optedIn) {
-    await OneSignal.User.PushSubscription.optOut();
-  } else {
-    await OneSignal.User.PushSubscription.optIn();
+  if (!_osReady || !window.OneSignal) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const inPWA = !!navigator.standalone;
+    if (inPWA && _osInitError) {
+      alert('Notifikace se nepodařilo aktivovat.\n\nChyba: ' + _osInitError);
+    } else if (inPWA) {
+      alert('Notifikace se ještě inicializují, zkus to za chvíli.');
+    } else if (isIOS) {
+      alert(
+        'Na iOS fungují notifikace pouze přes aplikaci přidanou na plochu.\n\n' +
+        '1. Otevři tipovacku v Safari\n' +
+        '2. Sdílet (čtvereček se šipkou) → „Přidat na plochu"\n' +
+        '3. Otevři nově přidanou ikonu a klikni 🔕'
+      );
+    } else {
+      alert('Notifikace se ještě inicializují, zkus to za chvíli.');
+    }
+    return;
   }
-  updateBellBtn();
+  try {
+    if (OneSignal.User.PushSubscription.optedIn) {
+      await OneSignal.User.PushSubscription.optOut();
+      updateBellBtn();
+    } else {
+      // Show Czech prompt before triggering the browser permission dialog
+      document.getElementById('notifOverlay').style.display = 'flex';
+    }
+  } catch (e) {
+    console.error('[OneSignal] subscription error:', e);
+    alert('Nepodařilo se změnit nastavení notifikací.\nChyba: ' + e.message);
+  }
+});
+
+document.getElementById('notifAllow').addEventListener('click', async () => {
+  document.getElementById('notifOverlay').style.display = 'none';
+  try {
+    await OneSignal.User.PushSubscription.optIn();
+    updateBellBtn();
+  } catch (e) {
+    console.error('[OneSignal] optIn error:', e);
+    alert('Nepodařilo se zapnout notifikace.\nChyba: ' + e.message);
+  }
+});
+
+document.getElementById('notifDeny').addEventListener('click', () => {
+  document.getElementById('notifOverlay').style.display = 'none';
+});
+
+document.getElementById('notifOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.style.display = 'none';
+  }
 });
 
 function initOneSignal() {
   if (!ONESIGNAL_APP_ID) return;
+  // Pre-register the SW at the correct subdirectory path so OneSignal finds it
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/tipovacka/OneSignalSDKWorker.js', { scope: '/tipovacka/' })
+      .catch(e => console.warn('[SW pre-register]', e));
+  }
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      serviceWorkerPath: 'OneSignalSDKWorker.js',
-      serviceWorkerParam: { scope: '/tipovacka/' },
-      notifyButton: { enable: false },
-      welcomeNotification: { disable: true },
-    });
-    updateBellBtn();
-    OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
+    try {
+      await OneSignal.init({
+        appId: ONESIGNAL_APP_ID,
+        serviceWorkerPath: '/tipovacka/OneSignalSDKWorker.js',
+        serviceWorkerParam: { scope: '/tipovacka/' },
+        autoPrompt: false,
+        notifyButton: { enable: false },
+        welcomeNotification: { disable: true },
+      });
+      _osReady = true;
+      updateBellBtn();
+      OneSignal.User.PushSubscription.addEventListener('change', updateBellBtn);
+    } catch (e) {
+      _osInitError = e.message || String(e);
+      console.error('[OneSignal] init error:', e);
+    }
   });
 }
 
 initOneSignal();
 
 /* ── Init ────────────────────────────────────────────── */
+/* ── Pull-to-refresh ─────────────────────────────────── */
+(function() {
+  const THRESHOLD = 72;   // px of pull needed to trigger refresh
+  const MAX_PULL  = 110;  // px at which badge stops following finger
+  const badge = document.getElementById('ptrBadge');
+  const ball  = badge.querySelector('.ptr-ball');
+  let startY = 0, pulling = false, triggered = false;
+
+  function setBadgeY(y) {
+    // y = 0..MAX_PULL → badge goes from -72 to +16 (peeking below header)
+    const t = Math.min(y, MAX_PULL);
+    const ease = t < THRESHOLD ? t : THRESHOLD + (t - THRESHOLD) * 0.25;
+    badge.style.transform = `translateX(-50%) translateY(calc(-72px + ${ease}px))`;
+    // Rotate ball proportionally to pull distance
+    const deg = (t / THRESHOLD) * 360;
+    ball.style.transform = `rotate(${deg}deg)`;
+    badge.classList.toggle('ptr-ready', t >= THRESHOLD);
+  }
+
+  function reset() {
+    badge.style.transition = 'transform .35s cubic-bezier(.22,1,.36,1)';
+    badge.style.transform = 'translateX(-50%) translateY(-72px)';
+    ball.style.transform = '';
+    badge.classList.remove('ptr-ready', 'ptr-spin');
+    setTimeout(() => { badge.style.transition = ''; }, 380);
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY > 0) return;
+    startY = e.touches[0].clientY;
+    pulling = true;
+    triggered = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy <= 0) { pulling = false; return; }
+    setBadgeY(dy);
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!pulling) return;
+    pulling = false;
+    const t = parseFloat(badge.style.transform.match(/translateY\(calc\(-72px \+ ([\d.]+)px\)/)?.[1] || '0');
+    if (t < THRESHOLD) { reset(); return; }
+    // Settle badge, brief spin, then full page reload so latest code is fetched
+    badge.classList.add('ptr-spin');
+    badge.style.transition = 'transform .2s ease';
+    badge.style.transform = 'translateX(-50%) translateY(calc(-72px + 52px))';
+    if (navigator.vibrate) navigator.vibrate(50);
+    await new Promise(r => setTimeout(r, 400));
+    window.location.reload();
+  });
+})();
+
 async function init() {
   try {
     await loadPlayers();
