@@ -873,9 +873,9 @@
       "awayTeam": "Canada",
       "kickoff": "2026-06-28 12:00",
       "stadiumId": "16",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 2
     },
     {
       "id": "74",
@@ -885,9 +885,9 @@
       "awayTeam": "Paraguay",
       "kickoff": "2026-06-29 16:30",
       "stadiumId": "9",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 0
     },
     {
       "id": "75",
@@ -897,9 +897,9 @@
       "awayTeam": "Morocco",
       "kickoff": "2026-06-29 19:00",
       "stadiumId": "3",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
       "id": "76",
@@ -909,9 +909,9 @@
       "awayTeam": "Japan",
       "kickoff": "2026-06-29 12:00",
       "stadiumId": "5",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
       "id": "77",
