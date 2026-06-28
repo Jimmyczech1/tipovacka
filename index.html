@@ -2204,6 +2204,7 @@ function populateSelects() {
     else localStorage.removeItem('tipovacka_playerName');
     renderNextMatch();
     renderMovementCards();
+    if (document.getElementById('ko-panel-zapasy')?.style.display !== 'none') renderKOZapasy();
   });
 }
 
