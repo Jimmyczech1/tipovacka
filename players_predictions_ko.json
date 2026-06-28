@@ -1,15 +1,210 @@
 [
   {
     "name": "Pavel Machovsky",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 1,
+        "away": 0
+      },
+      "75": {
+        "home": 1,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 0
+      },
+      "77": {
+        "home": 2,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 3
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 3,
+        "away": 1
+      },
+      "81": {
+        "home": 0,
+        "away": 0
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 0,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 1
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 2,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 0
+      },
+      "88": {
+        "home": 0,
+        "away": 1
+      }
+    }
   },
   {
     "name": "David Machovsly",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 3
+      },
+      "74": {
+        "home": 4,
+        "away": 1
+      },
+      "75": {
+        "home": 2,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 0
+      },
+      "77": {
+        "home": 4,
+        "away": 1
+      },
+      "78": {
+        "home": 0,
+        "away": 2
+      },
+      "79": {
+        "home": 1,
+        "away": 0
+      },
+      "80": {
+        "home": 2,
+        "away": 2
+      },
+      "81": {
+        "home": 3,
+        "away": 1
+      },
+      "82": {
+        "home": 3,
+        "away": 0
+      },
+      "83": {
+        "home": 2,
+        "away": 1
+      },
+      "84": {
+        "home": 4,
+        "away": 0
+      },
+      "85": {
+        "home": 3,
+        "away": 1
+      },
+      "86": {
+        "home": 5,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 0
+      },
+      "88": {
+        "home": 2,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Vitek Slunecko",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 2,
+        "away": 0
+      },
+      "75": {
+        "home": 1,
+        "away": 1
+      },
+      "76": {
+        "home": 3,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 1
+      },
+      "78": {
+        "home": 1,
+        "away": 1
+      },
+      "79": {
+        "home": 2,
+        "away": 2
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Olda Cervinka",
@@ -17,19 +212,279 @@
   },
   {
     "name": "Karel Klima",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 0,
+        "away": 2
+      },
+      "74": {
+        "home": 2,
+        "away": 0
+      },
+      "75": {
+        "home": 1,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 2,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 1
+      },
+      "79": {
+        "home": 2,
+        "away": 2
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 1,
+        "away": 0
+      },
+      "82": {
+        "home": 1,
+        "away": 0
+      },
+      "83": {
+        "home": 2,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 1
+      },
+      "85": {
+        "home": 1,
+        "away": 0
+      },
+      "86": {
+        "home": 4,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 0
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Darek Nestak",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 3
+      },
+      "74": {
+        "home": 3,
+        "away": 2
+      },
+      "75": {
+        "home": 3,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 3
+      },
+      "79": {
+        "home": 2,
+        "away": 1
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 3,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 2
+      },
+      "84": {
+        "home": 4,
+        "away": 2
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 1
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 2
+      }
+    }
   },
   {
     "name": "Vit Vevericik",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 2,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 1
+      },
+      "76": {
+        "home": 3,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 2
+      },
+      "79": {
+        "home": 2,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 0
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 4,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 2
+      }
+    }
   },
   {
     "name": "Jan Cejchan",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 0,
+        "away": 2
+      },
+      "74": {
+        "home": 3,
+        "away": 1
+      },
+      "75": {
+        "home": 1,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 2
+      },
+      "77": {
+        "home": 2,
+        "away": 1
+      },
+      "78": {
+        "home": 2,
+        "away": 3
+      },
+      "79": {
+        "home": 3,
+        "away": 1
+      },
+      "80": {
+        "home": 0,
+        "away": 2
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 3,
+        "away": 0
+      },
+      "83": {
+        "home": 3,
+        "away": 3
+      },
+      "84": {
+        "home": 4,
+        "away": 1
+      },
+      "85": {
+        "home": 1,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 2
+      },
+      "88": {
+        "home": 2,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Jan Satra",
@@ -37,7 +492,72 @@
   },
   {
     "name": "Marek Machovsky",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 3,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 2
+      },
+      "77": {
+        "home": 3,
+        "away": 1
+      },
+      "78": {
+        "home": 0,
+        "away": 2
+      },
+      "79": {
+        "home": 1,
+        "away": 2
+      },
+      "80": {
+        "home": 2,
+        "away": 0
+      },
+      "81": {
+        "home": 1,
+        "away": 1
+      },
+      "82": {
+        "home": 1,
+        "away": 0
+      },
+      "83": {
+        "home": 2,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 0
+      },
+      "85": {
+        "home": 2,
+        "away": 0
+      },
+      "86": {
+        "home": 3,
+        "away": 1
+      },
+      "87": {
+        "home": 3,
+        "away": 0
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Honza Horáček",
@@ -45,47 +565,762 @@
   },
   {
     "name": "Stepan Ruzicka",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 0,
+        "away": 2
+      },
+      "74": {
+        "home": 3,
+        "away": 1
+      },
+      "75": {
+        "home": 2,
+        "away": 2
+      },
+      "76": {
+        "home": 3,
+        "away": 1
+      },
+      "77": {
+        "home": 2,
+        "away": 0
+      },
+      "78": {
+        "home": 0,
+        "away": 2
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 0
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 1,
+        "away": 0
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 0,
+        "away": 0
+      }
+    }
   },
   {
     "name": "Kuba Kriz",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 0,
+        "away": 3
+      },
+      "74": {
+        "home": 2,
+        "away": 1
+      },
+      "75": {
+        "home": 2,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 1
+      },
+      "78": {
+        "home": 1,
+        "away": 2
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 2
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 1,
+        "away": 1
+      },
+      "86": {
+        "home": 5,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 2
+      },
+      "88": {
+        "home": 1,
+        "away": 2
+      }
+    }
   },
   {
     "name": "Starky",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 1
+      },
+      "74": {
+        "home": 3,
+        "away": 1
+      },
+      "75": {
+        "home": 1,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 0
+      },
+      "77": {
+        "home": 4,
+        "away": 1
+      },
+      "78": {
+        "home": 2,
+        "away": 1
+      },
+      "79": {
+        "home": 2,
+        "away": 2
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 3,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 1
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 2,
+        "away": 0
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 0,
+        "away": 2
+      }
+    }
   },
   {
     "name": "Matus Lazovsky",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 3
+      },
+      "74": {
+        "home": 2,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 0,
+        "away": 2
+      },
+      "79": {
+        "home": 2,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 0
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 5,
+        "away": 1
+      },
+      "83": {
+        "home": 2,
+        "away": 2
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 1,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 0,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Kuba Neužil",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 3,
+        "away": 1
+      },
+      "75": {
+        "home": 1,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 1
+      },
+      "78": {
+        "home": 1,
+        "away": 2
+      },
+      "79": {
+        "home": 1,
+        "away": 0
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 1
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 0
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "David Filgas",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 3,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 2
+      },
+      "77": {
+        "home": 4,
+        "away": 1
+      },
+      "78": {
+        "home": 1,
+        "away": 3
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 3,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 2,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Standa Jambor",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 1,
+        "away": 0
+      },
+      "75": {
+        "home": 3,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 2,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 3
+      },
+      "79": {
+        "home": 2,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 0
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 2,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 1
+      },
+      "85": {
+        "home": 1,
+        "away": 0
+      },
+      "86": {
+        "home": 2,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 0
+      },
+      "88": {
+        "home": 2,
+        "away": 3
+      }
+    }
   },
   {
     "name": "Jachym Jakimeczko",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 1
+      },
+      "74": {
+        "home": 4,
+        "away": 1
+      },
+      "75": {
+        "home": 3,
+        "away": 1
+      },
+      "76": {
+        "home": 3,
+        "away": 2
+      },
+      "77": {
+        "home": 4,
+        "away": 2
+      },
+      "78": {
+        "home": 2,
+        "away": 3
+      },
+      "79": {
+        "home": 1,
+        "away": 2
+      },
+      "80": {
+        "home": 1,
+        "away": 2
+      },
+      "81": {
+        "home": 2,
+        "away": 3
+      },
+      "82": {
+        "home": 3,
+        "away": 0
+      },
+      "83": {
+        "home": 3,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 3,
+        "away": 1
+      },
+      "86": {
+        "home": 2,
+        "away": 0
+      },
+      "87": {
+        "home": 3,
+        "away": 1
+      },
+      "88": {
+        "home": 2,
+        "away": 2
+      }
+    }
   },
   {
     "name": "Filip Podlipny",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 3
+      },
+      "74": {
+        "home": 3,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 2
+      },
+      "76": {
+        "home": 3,
+        "away": 2
+      },
+      "77": {
+        "home": 4,
+        "away": 1
+      },
+      "78": {
+        "home": 2,
+        "away": 4
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 0
+      },
+      "82": {
+        "home": 3,
+        "away": 1
+      },
+      "83": {
+        "home": 2,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 1
+      },
+      "85": {
+        "home": 2,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 1
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 0,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Standa Silhavy",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 2,
+        "away": 1
+      },
+      "75": {
+        "home": 1,
+        "away": 1
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 4,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 2
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 0
+      },
+      "85": {
+        "home": 1,
+        "away": 1
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 2
+      }
+    }
   },
   {
     "name": "David Nestak",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 2,
+        "away": 0
+      },
+      "75": {
+        "home": 3,
+        "away": 2
+      },
+      "76": {
+        "home": 3,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 0,
+        "away": 3
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 3,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 2
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 2,
+        "away": 2
+      },
+      "84": {
+        "home": 3,
+        "away": 0
+      },
+      "85": {
+        "home": 3,
+        "away": 1
+      },
+      "86": {
+        "home": 4,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 0,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Honza Novak",
@@ -93,7 +1328,72 @@
   },
   {
     "name": "Jirka Nyvlt",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 0,
+        "away": 1
+      },
+      "74": {
+        "home": 3,
+        "away": 1
+      },
+      "75": {
+        "home": 2,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 2,
+        "away": 1
+      },
+      "79": {
+        "home": 2,
+        "away": 1
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 3,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 1,
+        "away": 0
+      },
+      "86": {
+        "home": 2,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Hardy Pavlicek",
@@ -101,18 +1401,278 @@
   },
   {
     "name": "Matej Chalupka",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 1
+      },
+      "74": {
+        "home": 2,
+        "away": 1
+      },
+      "75": {
+        "home": 3,
+        "away": 1
+      },
+      "76": {
+        "home": 3,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 1,
+        "away": 3
+      },
+      "79": {
+        "home": 1,
+        "away": 1
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 1
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 1
+      },
+      "85": {
+        "home": 1,
+        "away": 1
+      },
+      "86": {
+        "home": 2,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Vašek Stach",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 0,
+        "away": 2
+      },
+      "74": {
+        "home": 3,
+        "away": 0
+      },
+      "75": {
+        "home": 3,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 0
+      },
+      "78": {
+        "home": 2,
+        "away": 2
+      },
+      "79": {
+        "home": 2,
+        "away": 2
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 3,
+        "away": 1
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 1,
+        "away": 1
+      },
+      "84": {
+        "home": 2,
+        "away": 0
+      },
+      "85": {
+        "home": 1,
+        "away": 2
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 2,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Martin Souček",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 2
+      },
+      "74": {
+        "home": 2,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 0
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 3,
+        "away": 1
+      },
+      "78": {
+        "home": 0,
+        "away": 1
+      },
+      "79": {
+        "home": 1,
+        "away": 0
+      },
+      "80": {
+        "home": 2,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 0
+      },
+      "82": {
+        "home": 2,
+        "away": 0
+      },
+      "83": {
+        "home": 2,
+        "away": 1
+      },
+      "84": {
+        "home": 3,
+        "away": 0
+      },
+      "85": {
+        "home": 2,
+        "away": 0
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 1,
+        "away": 1
+      }
+    }
   },
   {
     "name": "Mike Dallal",
-    "predictions": {}
+    "predictions": {
+      "73": {
+        "home": 1,
+        "away": 3
+      },
+      "74": {
+        "home": 5,
+        "away": 0
+      },
+      "75": {
+        "home": 2,
+        "away": 2
+      },
+      "76": {
+        "home": 2,
+        "away": 1
+      },
+      "77": {
+        "home": 4,
+        "away": 1
+      },
+      "78": {
+        "home": 2,
+        "away": 3
+      },
+      "79": {
+        "home": 2,
+        "away": 2
+      },
+      "80": {
+        "home": 1,
+        "away": 1
+      },
+      "81": {
+        "home": 2,
+        "away": 1
+      },
+      "82": {
+        "home": 3,
+        "away": 1
+      },
+      "83": {
+        "home": 3,
+        "away": 2
+      },
+      "84": {
+        "home": 3,
+        "away": 1
+      },
+      "85": {
+        "home": 2,
+        "away": 2
+      },
+      "86": {
+        "home": 3,
+        "away": 0
+      },
+      "87": {
+        "home": 1,
+        "away": 1
+      },
+      "88": {
+        "home": 2,
+        "away": 2
+      }
+    }
   }
 ]
