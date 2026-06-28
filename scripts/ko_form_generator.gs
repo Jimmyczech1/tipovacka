@@ -50,23 +50,23 @@ const PLAYERS = [
 // Uprav před každým kolem. id = číslo zápasu z games.json.
 const ROUND_NAME = "1. kolo play off"; // "Osmifinále" / "Čtvrtfinále" / atd.
 const GAMES = [
-  // Nahraď "TBD" skutečnými jmény týmů po skončení skupin (27.6. po 21:00):
-  { id: 73,  home: "TBD", away: "TBD" },
-  { id: 74,  home: "TBD", away: "TBD" },
-  { id: 75,  home: "TBD", away: "TBD" },
-  { id: 76,  home: "TBD", away: "TBD" },
-  { id: 77,  home: "TBD", away: "TBD" },
-  { id: 78,  home: "TBD", away: "TBD" },
-  { id: 79,  home: "TBD", away: "TBD" },
-  { id: 80,  home: "TBD", away: "TBD" },
-  { id: 81,  home: "TBD", away: "TBD" },
-  { id: 82,  home: "TBD", away: "TBD" },
-  { id: 83,  home: "TBD", away: "TBD" },
-  { id: 84,  home: "TBD", away: "TBD" },
-  { id: 85,  home: "TBD", away: "TBD" },
-  { id: 86,  home: "TBD", away: "TBD" },
-  { id: 87,  home: "TBD", away: "TBD" },
-  { id: 88,  home: "TBD", away: "TBD" },
+  // Všechny páry potvrzeny z live API + rozpisu turnaje (28.6.2026)
+  { id: 73, home: "South Africa",          away: "Canada" },              // 28.6. 21:00 CZ
+  { id: 76, home: "Brazil",                away: "Japan" },               // 29.6. 19:00 CZ
+  { id: 74, home: "Germany",               away: "Paraguay" },            // 29.6. 22:30 CZ
+  { id: 75, home: "Netherlands",           away: "Morocco" },             // 30.6. 03:00 CZ
+  { id: 78, home: "Ivory Coast",           away: "Norway" },              // 30.6. 19:00 CZ
+  { id: 77, home: "France",               away: "Sweden" },              // 30.6. 23:00 CZ
+  { id: 79, home: "Mexico",               away: "Ecuador" },             //  1.7. 03:00 CZ
+  { id: 82, home: "England",              away: "DR Congo" },            //  1.7. 18:00 CZ
+  { id: 80, home: "Belgium",              away: "Senegal" },             //  1.7. 22:00 CZ
+  { id: 81, home: "United States",         away: "Bosnia and Herzegovina" }, //  2.7. 02:00 CZ
+  { id: 84, home: "Spain",                away: "Austria" },             //  2.7. 21:00 CZ
+  { id: 83, home: "Portugal",             away: "Croatia" },             //  3.7. 01:00 CZ
+  { id: 85, home: "Switzerland",           away: "Algeria" },             //  3.7. 05:00 CZ
+  { id: 88, home: "Australia",             away: "Egypt" },               //  3.7. 20:00 CZ
+  { id: 86, home: "Argentina",             away: "Cape Verde" },          //  4.7. 00:00 CZ
+  { id: 87, home: "Colombia",             away: "Ghana" },               //  4.7. 03:30 CZ
   // Pro osmifinále použij id: 89–96, pro čtvrtfinále 97–100, atd.
 ];
 
