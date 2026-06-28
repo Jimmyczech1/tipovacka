@@ -671,7 +671,7 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 .ko-pred-pts.exact{color:#f4b942}
 .ko-pred-pts.miss{color:var(--mut)}
 
-/* KO Leaderboard */
+/* KO Leaderboard – scoring table in Pravidla */
 .ko-lbt{width:100%;border-collapse:collapse;font-size:.88rem}
 .ko-lbt th{text-align:left;padding:.55rem .75rem;border-bottom:2px solid var(--brd);font-size:.78rem;color:var(--mut);white-space:nowrap}
 .ko-lbt td{padding:.55rem .75rem;border-bottom:1px solid var(--brd)}
@@ -680,6 +680,25 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 .ko-lbt .ko-name{font-weight:600}
 .ko-lbt .ko-pts{font-weight:700;color:var(--gd);text-align:right}
 .ko-lbt tbody tr:hover td{background:var(--gl)}
+/* KO Leaderboard – expandable player rows */
+.ko-lb-list{display:flex;flex-direction:column;gap:.4rem}
+.ko-lb-row{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);overflow:hidden}
+.ko-lb-main{display:flex;align-items:center;gap:.45rem;padding:.6rem .75rem;cursor:pointer;user-select:none}
+.ko-lb-main:hover{background:var(--gl)}
+.ko-lb-chevron{color:var(--mut);font-size:.7rem;flex-shrink:0;margin-left:auto;transition:transform .2s}
+.ko-lb-row.open .ko-lb-chevron{transform:rotate(180deg)}
+.ko-lb-detail{display:none;border-top:1px solid var(--brd);padding:.5rem .75rem .75rem}
+.ko-lb-row.open .ko-lb-detail{display:block}
+.ko-detail-row{display:flex;align-items:center;gap:.5rem;padding:.28rem 0;font-size:.82rem;border-bottom:1px solid var(--brd)}
+.ko-detail-row:last-child{border-bottom:none}
+.ko-detail-match{flex:1;color:var(--mut);font-size:.79rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ko-detail-tip{font-weight:600;white-space:nowrap;min-width:3.5rem;text-align:center}
+.ko-detail-tip.ex{color:#f4b942}.ko-detail-tip.co{color:var(--gm)}.ko-detail-tip.wr{color:#e05252}
+.ko-detail-pts{font-weight:700;color:var(--gd);min-width:2.2rem;text-align:right;font-size:.78rem;flex-shrink:0}
+.ko-detail-exact{margin-top:.6rem;font-size:.85rem;font-weight:700;text-align:right;color:var(--txt)}
+/* Pravidla table scroll on mobile */
+.ko-rules .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -.25rem .75rem;padding:0 .25rem}
+@media(max-width:520px){.ko-rules .ko-lbt{font-size:.75rem}.ko-rules .ko-lbt th,.ko-rules .ko-lbt td{padding:.35rem .4rem}}
 
 /* Bracket (QF → SF → Final) */
 /* Full bracket: equal-flex alignment across rounds */
@@ -815,12 +834,12 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
       <p class="stitle">🏆 Playoff</p>
       <nav class="ko-subnav" id="koSubnav">
         <button class="ko-subbtn active" data-kosub="poradi">🏆 Pořadí</button>
-        <button class="ko-subbtn" data-kosub="kola">📋 Kola</button>
+        <button class="ko-subbtn" data-kosub="zapasy">📋 Zápasy</button>
         <button class="ko-subbtn" data-kosub="pavouk">🕸️ Pavouk</button>
         <button class="ko-subbtn" data-kosub="pravidla">📜 Pravidla</button>
       </nav>
       <div id="ko-panel-poradi"></div>
-      <div id="ko-panel-kola" style="display:none"></div>
+      <div id="ko-panel-zapasy" style="display:none"></div>
       <div id="ko-panel-pavouk" style="display:none"></div>
       <div id="ko-panel-pravidla" style="display:none"></div>
     </div>
@@ -2185,6 +2204,7 @@ function populateSelects() {
     else localStorage.removeItem('tipovacka_playerName');
     renderNextMatch();
     renderMovementCards();
+    if (document.getElementById('ko-panel-zapasy')?.style.display !== 'none') renderKOZapasy();
   });
 }
 
@@ -2548,33 +2568,101 @@ function renderKOLeaderboard() {
     el.innerHTML = '<p class="emsg">⏳ KO data se načítají…</p>';
     return;
   }
-  const rows = _koPlayers.map(p => ({ name: p.name, ...calcKOScore(p) }));
-  rows.sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.correct - a.correct);
-
-  const totalFinished = getKOGames().filter(g => g._fin).length;
-  if (totalFinished === 0) {
+  const finGames = sortByKickoff(getKOGames().filter(g => g._fin && g._hs != null));
+  if (finGames.length === 0) {
     el.innerHTML = '<p class="emsg">⏳ KO zápasy ještě nezačaly. Výsledky se zobrazí po odehrání prvního zápasu.</p>';
     return;
   }
 
-  let rank = 0, prevPts = null, prevExact = null;
-  const trs = rows.map((r, i) => {
-    if (r.pts !== prevPts || r.exact !== prevExact) { rank = i + 1; }
-    prevPts = r.pts; prevExact = r.exact;
-    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
-    return `<tr>
-      <td class="ko-rank">${medal || rank}</td>
-      <td class="ko-name">${r.name}</td>
-      <td class="ko-pts">${r.pts}</td>
-      <td style="text-align:right;color:var(--mut);font-size:.82rem">${r.exact}×🎯</td>
-    </tr>`;
+  // Current scores
+  const rows = _koPlayers.map(p => ({ name: p.name, player: p, ...calcKOScore(p) }));
+  rows.sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.correct - a.correct);
+  let rnk = 0, pp = null, pe = null;
+  rows.forEach((r, i) => { if (r.pts !== pp || r.exact !== pe) rnk = i + 1; r.rank = rnk; pp = r.pts; pe = r.exact; });
+
+  // Previous rank (all but last finished game)
+  const prevRankMap = {};
+  if (finGames.length >= 2) {
+    const prevGames = finGames.slice(0, -1);
+    const prevRows = _koPlayers.map(p => {
+      let pts = 0, exact = 0, correct = 0;
+      for (const g of prevGames) {
+        const tip = (p.predictions || {})[String(g.id)];
+        if (!tip) continue;
+        const rnd = KO_ROUNDS.find(r => r.id === g.type);
+        if (!rnd) continue;
+        const th = Number(tip.home), ta = Number(tip.away), ah = Number(g._hs), aa = Number(g._as);
+        if (th === ah && ta === aa) { pts += rnd.correct + rnd.bonus; exact++; correct++; }
+        else { const tw = th > ta ? 'h' : th < ta ? 'a' : 'd', aw = ah > aa ? 'h' : ah < aa ? 'a' : 'd'; if (tw === aw) { pts += rnd.correct; correct++; } }
+      }
+      return { name: p.name, pts, exact };
+    });
+    prevRows.sort((a, b) => b.pts - a.pts || b.exact - a.exact);
+    let pr = 0, prp = null, pre = null;
+    prevRows.forEach((r, i) => { if (r.pts !== prp || r.exact !== pre) pr = i + 1; prevRankMap[r.name] = pr; prp = r.pts; pre = r.exact; });
+  }
+
+  const arrowHtml = (name, curRank) => {
+    const prev = prevRankMap[name];
+    if (prev == null) return '<span class="form-arrow fa-eq">–</span>';
+    const d = prev - curRank;
+    if (d > 0) return `<span class="form-arrow fa-up" title="↑${d}">↑</span>`;
+    if (d < 0) return `<span class="form-arrow fa-dn" title="↓${Math.abs(d)}">↓</span>`;
+    return '<span class="form-arrow fa-eq">–</span>';
+  };
+
+  const last5 = finGames.slice(-5);
+
+  const hint = `<p class="form-hint">🟩 přesný tip · 🟨 správný výsledek · 🟥 mimo &nbsp;·&nbsp; klikni na hráče pro detaily</p>`;
+
+  const rowsHtml = rows.map(r => {
+    const p = r.player;
+    const dots = last5.map(g => {
+      const tip = (p.predictions || {})[String(g.id)];
+      if (!tip) return `<span class="fdot wr">–</span>`;
+      const th = Number(tip.home), ta = Number(tip.away), ah = Number(g._hs), aa = Number(g._as);
+      const exact = th === ah && ta === aa;
+      const corr = (th > ta ? 'h' : th < ta ? 'a' : 'd') === (ah > aa ? 'h' : ah < aa ? 'a' : 'd');
+      return `<span class="fdot ${exact ? 'ex' : corr ? 'co' : 'wr'}" title="${g._home} ${g._hs}:${g._as} ${g._away} – tip ${tip.home}:${tip.away}">${exact ? '★' : corr ? '✓' : '✕'}</span>`;
+    }).join('');
+    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '';
+
+    const detailRows = finGames.map(g => {
+      const tip = (p.predictions || {})[String(g.id)];
+      const rnd = KO_ROUNDS.find(r2 => r2.id === g.type);
+      if (!tip) return `<div class="ko-detail-row"><span class="ko-detail-match">${g._home} ${g._hs}:${g._as} ${g._away}</span><span class="ko-detail-tip" style="color:var(--mut)">bez tipu</span><span class="ko-detail-pts">0b</span></div>`;
+      const th = Number(tip.home), ta = Number(tip.away), ah = Number(g._hs), aa = Number(g._as);
+      const exact = th === ah && ta === aa;
+      const corr = (th > ta ? 'h' : th < ta ? 'a' : 'd') === (ah > aa ? 'h' : ah < aa ? 'a' : 'd');
+      const pts = exact ? rnd.correct + rnd.bonus : corr ? rnd.correct : 0;
+      return `<div class="ko-detail-row">
+        <span class="ko-detail-match">${g._home} ${g._hs}:${g._as} ${g._away}</span>
+        <span class="ko-detail-tip ${exact ? 'ex' : corr ? 'co' : 'wr'}">${tip.home}:${tip.away} ${exact ? '🎯' : corr ? '✅' : '❌'}</span>
+        <span class="ko-detail-pts">${pts > 0 ? '+' + pts + 'b' : '0b'}</span>
+      </div>`;
+    }).join('');
+    const exactIcons = r.exact > 0 ? '🎯'.repeat(r.exact) + ` (${r.exact}×)` : '–';
+
+    return `<div class="ko-lb-row">
+      <div class="ko-lb-main">
+        <span class="form-rank">${medal || r.rank + '.'}</span>
+        ${arrowHtml(r.name, r.rank)}
+        <span class="form-name">${r.name}</span>
+        <span class="form-dots">${dots}</span>
+        <span class="form-pts">${r.pts} b</span>
+        <span class="ko-lb-chevron">▼</span>
+      </div>
+      <div class="ko-lb-detail">
+        ${detailRows}
+        <div class="ko-detail-exact">Přesné tipy: ${exactIcons}</div>
+      </div>
+    </div>`;
   }).join('');
-  el.innerHTML = `<table class="ko-lbt">
-    <thead><tr>
-      <th>#</th><th>Hráč</th><th style="text-align:right">Body</th><th style="text-align:right">Přesné</th>
-    </tr></thead>
-    <tbody>${trs}</tbody>
-  </table>`;
+
+  el.innerHTML = hint + `<div class="ko-lb-list">${rowsHtml}</div>`;
+  el.querySelectorAll('.ko-lb-row').forEach(row => {
+    row.querySelector('.ko-lb-main').addEventListener('click', () => row.classList.toggle('open'));
+  });
 }
 
 function koScoreClass(tip, game) {
@@ -2587,10 +2675,29 @@ function koScoreClass(tip, game) {
   return tw === aw ? 'sd' : 'sl';
 }
 
-function renderKORounds() {
-  const el = document.getElementById('ko-panel-kola');
+function computeKOMatchPoll(game) {
+  const buckets = { '1': [], '0': [], '2': [] };
+  const scoreCounts = {};
+  const exactNames = new Set();
+  let n = 0;
+  (_koPlayers || []).forEach(p => {
+    const tip = (p.predictions || {})[String(game.id)];
+    if (!tip) return;
+    buckets[outcome(Number(tip.home), Number(tip.away))].push(p.name);
+    const k = `${tip.home}:${tip.away}`;
+    scoreCounts[k] = (scoreCounts[k] || 0) + 1;
+    n++;
+    if (game._fin && game._hs != null && Number(tip.home) === Number(game._hs) && Number(tip.away) === Number(game._as)) exactNames.add(p.name);
+  });
+  return { buckets, scoreCounts, n, exactNames };
+}
+
+function renderKOZapasy() {
+  const el = document.getElementById('ko-panel-zapasy');
   const games = getKOGames();
   if (!games.length) { el.innerHTML = '<p class="emsg">⏳ KO zápasy nenalezeny.</p>'; return; }
+
+  const myName = localStorage.getItem('tipovacka_playerName') || '';
 
   let html = '';
   for (const round of KO_ROUNDS) {
@@ -2600,26 +2707,56 @@ function renderKORounds() {
     for (const g of rGames) {
       const scoreLabel = g._fin
         ? `${g._hs}:${g._as}`
-        : (g._ko ? new Date(g._ko).toLocaleDateString('cs-CZ', {day:'numeric',month:'numeric'}) : '–');
+        : (g._ko ? formatKickoff(g._ko, g._stad) : '–');
       const scoreClass = g._fin ? (Number(g._hs) > Number(g._as) ? 'sw' : Number(g._hs) < Number(g._as) ? 'sl' : 'sd') : 'st';
 
-      const preds = (_koPlayers || []).filter(p => p.predictions && p.predictions[String(g.id)]);
-      const predsHtml = preds.map(p => {
-        const tip = p.predictions[String(g.id)];
-        const sc = koScoreClass(tip, g);
-        const round_ = KO_ROUNDS.find(r => r.id === g.type);
-        let ptsLabel = '';
-        if (g._fin && round_) {
-          if (sc === 'sw') ptsLabel = `+${round_.correct + round_.bonus}`;
-          else if (sc === 'sd') ptsLabel = `+${round_.correct}`;
-          else ptsLabel = '0';
+      const { buckets, scoreCounts, n, exactNames } = computeKOMatchPoll(g);
+      let body = '';
+      if (n > 0) {
+        const pct1 = Math.round(buckets['1'].length / n * 100);
+        const pct0 = Math.round(buckets['0'].length / n * 100);
+        const pct2 = 100 - pct1 - pct0;
+        const seg = (pct, cls) => pct > 0 ? `<div class="poll-seg ${cls}" style="flex:${pct}">${pct >= 8 ? pct + '%' : ''}</div>` : '';
+        const chip = (key, label, pct) => {
+          const names = buckets[key];
+          const groups = {};
+          names.forEach(nm => {
+            const pred = (_koPlayers || []).find(p => p.name === nm)?.predictions[String(g.id)];
+            if (!pred) return;
+            const k = `${pred.home}:${pred.away}`;
+            (groups[k] = groups[k] || []).push(nm);
+          });
+          const dropHtml = names.length === 0 ? '<div class="ps-row ps-empty">Nikdo</div>'
+            : Object.entries(groups).sort((a, b) => b[1].length - a[1].length).map(([score, snames]) => {
+                const isExact = g._fin && g._hs != null && score === `${g._hs}:${g._as}`;
+                const count = snames.length > 1 ? ` (${snames.length}×)` : '';
+                return `<div class="ps-row">${isExact ? '🎯 ' : ''}<span class="ps-score">${score}</span>${count} — ${snames.join(', ')}</div>`;
+              }).join('');
+          return `<button type="button" class="poll-chip" data-key="${key}">
+            <span>${label} <span class="pc-pct">${pct}%</span> <span class="pc-n">(${names.length})</span></span>
+            <span class="poll-chip-arrow">▾</span>
+          </button>
+          <div class="poll-names" data-key="${key}" hidden>${dropHtml}</div>`;
+        };
+
+        const myPred = myName ? (_koPlayers || []).find(p => p.name === myName)?.predictions[String(g.id)] : null;
+        let myTipHtml = '';
+        if (myPred) {
+          const th = Number(myPred.home), ta = Number(myPred.away);
+          const isExact  = g._fin && th === Number(g._hs) && ta === Number(g._as);
+          const isCorrect = g._fin && (th > ta ? 'h' : th < ta ? 'a' : 'd') === (Number(g._hs) > Number(g._as) ? 'h' : Number(g._hs) < Number(g._as) ? 'a' : 'd');
+          const verdict  = !g._fin ? '' : isExact ? ' — 🎯 Přesné skóre!' : isCorrect ? ' — ✅ Správný výsledek' : ' — ❌ Netrefil';
+          myTipHtml = `<div class="my-tip">Tvůj tip: <strong>${myPred.home}:${myPred.away}</strong>${verdict}</div>`;
         }
-        return `<div class="ko-pred-row">
-          <span class="ko-pred-name">${p.name}</span>
-          <span class="ko-pred-tip">${tip.home}:${tip.away}</span>
-          <span class="ko-pred-pts ${sc === 'sw' ? 'exact' : sc === 'sd' ? 'hit' : sc === 'sl' ? 'miss' : ''}">${ptsLabel}</span>
-        </div>`;
-      }).join('');
+
+        body = `<div class="poll-bar">${seg(pct1,'home')}${seg(pct0,'draw')}${seg(pct2,'away')}</div>
+          <div class="poll-chips">
+            ${chip('1', `${teamFlag(g._home)} ${g._home}`, pct1)}
+            ${chip('0', '🤝 Remíza', pct0)}
+            ${chip('2', `${teamFlag(g._away)} ${g._away}`, pct2)}
+          </div>
+          ${myTipHtml}`;
+      }
 
       html += `<div class="ko-game" data-gid="${g.id}">
         <div class="ko-game-head">
@@ -2630,15 +2767,22 @@ function renderKORounds() {
           </div>
           <span class="ko-expand-icon">▼</span>
         </div>
-        <div class="ko-preds">${predsHtml || '<p style="color:var(--mut);font-size:.83rem;margin:.2rem 0">Žádné tipy</p>'}</div>
+        <div class="ko-preds" style="padding:.6rem 1rem .8rem">${body || '<p style="color:var(--mut);font-size:.83rem;margin:.2rem 0">Žádné tipy</p>'}</div>
       </div>`;
     }
   }
   el.innerHTML = html;
 
   el.querySelectorAll('.ko-game-head').forEach(head => {
-    head.addEventListener('click', () => {
-      head.closest('.ko-game').classList.toggle('open');
+    head.addEventListener('click', () => head.closest('.ko-game').classList.toggle('open'));
+  });
+  el.querySelectorAll('.poll-chip').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const panel = btn.nextElementSibling;
+      const willOpen = panel.hidden;
+      panel.hidden = !willOpen;
+      btn.classList.toggle('open', willOpen);
     });
   });
 }
@@ -2717,11 +2861,11 @@ document.getElementById('koSubnav').addEventListener('click', e => {
   const sub = btn.dataset.kosub;
   document.querySelectorAll('.ko-subbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['poradi','kola','pavouk','pravidla'].forEach(id => {
+  ['poradi','zapasy','pavouk','pravidla'].forEach(id => {
     document.getElementById('ko-panel-' + id).style.display = id === sub ? '' : 'none';
   });
   if (sub === 'poradi') renderKOLeaderboard();
-  else if (sub === 'kola') renderKORounds();
+  else if (sub === 'zapasy') renderKOZapasy();
   else if (sub === 'pavouk') renderKOBracket();
   else if (sub === 'pravidla') renderKORules();
 });
@@ -2735,14 +2879,15 @@ function renderKORules() {
 
   <p class="stitle" style="margin-top:.25rem">O soutěži</p>
   <p>Vyřazovací část je <strong>samostatná soutěž</strong> oddělená od té základní. Body ze skupinové fáze (48 zápasů + tip vítěze MS za 10 bodů) do ní nevstupují a naopak. Každý startuje od nuly — díky tomu mají šanci i ti, kteří na skupinách bodovali méně.</p>
+  <p>⏱️ <strong>Tipuje se pouze základní hrací doba (90 minut).</strong> Případné prodloužení ani penalty se do výsledku nepočítají — výsledek po 90 minutách je konečný pro účely tipování.</p>
 
   <p class="stitle">Bodování</p>
-  <table class="ko-lbt" style="margin-bottom:.75rem">
+  <div class="tbl-wrap"><table class="ko-lbt" style="margin-bottom:.75rem">
     <thead><tr>
       <th>Kolo</th>
       <th style="text-align:right">Správný výsledek</th>
       <th style="text-align:right">+ přesné skóre</th>
-      <th style="text-align:right">Celkem za přesný tip</th>
+      <th style="text-align:right">Celkem</th>
     </tr></thead>
     <tbody>
       <tr><td>1. kolo play off</td><td style="text-align:right">1 bod</td><td style="text-align:right">+2 body</td><td style="text-align:right"><strong>3 body</strong></td></tr>
@@ -2752,52 +2897,52 @@ function renderKORules() {
       <tr><td>O 3. místo</td>      <td style="text-align:right">4 body</td><td style="text-align:right">+5 bodů</td><td style="text-align:right"><strong>9 bodů</strong></td></tr>
       <tr><td>Finále</td>          <td style="text-align:right">5 bodů</td><td style="text-align:right">+6 bodů</td><td style="text-align:right"><strong>11 bodů</strong></td></tr>
     </tbody>
-  </table>
-  <p><strong>Správný výsledek</strong> = uhodneš, kdo postoupí (vítěz nebo remíza v základní hrací době). <strong>Přesné skóre</strong> = navíc uhádneš i přesný počet gólů. Bodování roste s každým kolem záměrně — čím víc postupují silnější týmy, tím těžší je skóre přesně odhadnout, a tomu odpovídá i odměna.</p>
+  </table></div>
+  <p><strong>Správný výsledek</strong> = uhodneš, kdo postoupí (vítěz nebo remíza po 90 min). <strong>Přesné skóre</strong> = navíc uhádneš i přesný počet gólů po 90 min. Bodování roste s každým kolem záměrně — čím dál jsou silnější týmy, tím těžší je skóre odhadnout.</p>
 
   <p class="stitle">Termíny odevzdání tipů</p>
-  <p>Tipy na každé kolo lze odevzdat teprve tehdy, <strong>až jsou známy páry daného kola</strong> — tedy po skončení předchozího kola. Uzávěrka je vždy před prvním zápasem kola.</p>
-  <table class="ko-lbt" style="margin-bottom:.75rem">
+  <p>Tipy na každé kolo lze odevzdat teprve tehdy, <strong>až jsou známy páry daného kola</strong>. Uzávěrka je vždy před prvním zápasem kola.</p>
+  <div class="tbl-wrap"><table class="ko-lbt" style="margin-bottom:.75rem">
     <thead><tr>
       <th>Kolo</th>
-      <th>Zápasy (CZ čas)</th>
-      <th>Tipy odevzdat nejpozději</th>
-      <th>Okno pro tipy</th>
+      <th>Zápasy</th>
+      <th>Uzávěrka tipů</th>
+      <th>Okno</th>
     </tr></thead>
     <tbody>
       <tr>
         <td>1. kolo play off</td>
         <td style="color:var(--mut);font-size:.82rem">28. 6. – 4. 7.</td>
-        <td><strong>28. 6. do 21:00</strong></td>
-        <td style="color:var(--mut);font-size:.82rem">28. 6. ráno&nbsp;→&nbsp;28. 6. 21:00 (~16 h)</td>
+        <td><strong>28. 6. 21:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">28. 6. ráno → 21:00</td>
       </tr>
       <tr>
         <td>Osmifinále</td>
         <td style="color:var(--mut);font-size:.82rem">4. 7. – 7. 7.</td>
-        <td><strong>4. 7. do 19:00</strong></td>
-        <td style="color:var(--mut);font-size:.82rem">4. 7. dopoledne&nbsp;→&nbsp;4. 7. 19:00 ⚠️ (~13 h)</td>
+        <td><strong>4. 7. 19:00 ⚠️</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">4. 7. dop. → 19:00 (~13 h)</td>
       </tr>
       <tr>
         <td>Čtvrtfinále</td>
         <td style="color:var(--mut);font-size:.82rem">9. 7. – 12. 7.</td>
-        <td><strong>9. 7. do 22:00</strong></td>
-        <td style="color:var(--mut);font-size:.82rem">8. 7.&nbsp;→&nbsp;9. 7. (~2 dny)</td>
+        <td><strong>9. 7. 22:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">8. 7. → 9. 7. (~2 dny)</td>
       </tr>
       <tr>
         <td>Semifinále</td>
         <td style="color:var(--mut);font-size:.82rem">14. 7. – 15. 7.</td>
-        <td><strong>14. 7. do 21:00</strong></td>
-        <td style="color:var(--mut);font-size:.82rem">12. 7.&nbsp;→&nbsp;14. 7. (~2,5 dne)</td>
+        <td><strong>14. 7. 21:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">12. 7. → 14. 7. (~2,5 dne)</td>
       </tr>
       <tr>
         <td>Finále + O 3. místo</td>
         <td style="color:var(--mut);font-size:.82rem">18. 7. – 19. 7.</td>
-        <td><strong>18. 7. do 23:00</strong></td>
-        <td style="color:var(--mut);font-size:.82rem">15. 7.&nbsp;→&nbsp;18. 7. (~3 dny)</td>
+        <td><strong>18. 7. 23:00</strong></td>
+        <td style="color:var(--mut);font-size:.82rem">15. 7. → 18. 7. (~3 dny)</td>
       </tr>
     </tbody>
-  </table>
-  <p style="font-size:.84rem;color:var(--mut)">Všechny časy jsou v českém čase (CEST = UTC+2). ⚠️ Nejkratší okno je před osmifinálem — poslední zápas 1. kola končí 4. 7. v noci (~05:30) a osmifinále startuje hned 4. 7. v 19:00, takže na tipy bude jen ~13 hodin. Formulář pošlu ihned po skončení posledního zápasu 1. kola.</p>
+  </table></div>
+  <p style="font-size:.84rem;color:var(--mut)">Všechny časy jsou v českém čase (CEST = UTC+2). ⚠️ Nejkratší okno je před osmifinálem — poslední zápas 1. kola končí 4. 7. ~05:30 a osmifinále startuje 4. 7. v 19:00, takže na tipy bude jen ~13 hodin.</p>
 
 </div>`;
 }
