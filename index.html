@@ -2594,7 +2594,7 @@ function renderKORounds() {
 
   let html = '';
   for (const round of KO_ROUNDS) {
-    const rGames = games.filter(g => g.type === round.id);
+    const rGames = sortByKickoff(games.filter(g => g.type === round.id));
     if (!rGames.length) continue;
     html += `<p class="stitle" style="margin-top:1.25rem">${round.label} <small style="font-size:.75rem;font-weight:500;color:var(--mut)">(+${round.correct}/+${round.bonus})</small></p>`;
     for (const g of rGames) {
