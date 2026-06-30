@@ -2826,7 +2826,6 @@ function renderKOBracket() {
     return `<div class="ko-bmatch-inner">
       <div class="ko-bteam ${hWin ? 'winner' : ''}">${teamFlag(g._home)} ${shortName(g._home)}</div>
       <div class="ko-bteam ${aWin ? 'winner' : ''}">${teamFlag(g._away)} ${shortName(g._away)}</div>
-      ${g._fin ? `<div class="ko-bscore ${hWin?'sw':aWin?'sl':'sd'}">${g._hs}:${g._as}</div>` : ''}
     </div>`;
   }
 
