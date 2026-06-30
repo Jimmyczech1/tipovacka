@@ -703,17 +703,17 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 /* Bracket (QF → SF → Final) */
 /* Full bracket: equal-flex alignment across rounds */
 .ko-bfull-wrap{overflow-x:auto;padding-bottom:.5rem}
-.ko-bfull{display:flex;gap:6px;min-width:max-content;height:640px}
-.ko-bfull-col{display:flex;flex-direction:column;width:152px;flex-shrink:0}
-.ko-bfull-label{text-align:center;font-size:.68rem;font-weight:700;color:var(--mut);padding:.2rem 0 .35rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
+.ko-bfull{display:flex;gap:8px;min-width:max-content;height:960px}
+.ko-bfull-col{display:flex;flex-direction:column;width:164px;flex-shrink:0}
+.ko-bfull-label{text-align:center;font-size:.68rem;font-weight:700;color:var(--mut);padding:.2rem 0 .4rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
 .ko-bfull-games{display:flex;flex-direction:column;flex:1;min-height:0}
-.ko-bslot{flex:1;display:flex;align-items:center;padding:2px 0;min-height:0}
-.ko-bmatch-inner{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rsm);padding:.3rem .45rem;font-size:.76rem;display:flex;flex-direction:column;justify-content:center;gap:.1rem;width:100%;box-sizing:border-box}
+.ko-bslot{flex:1;display:flex;align-items:center;padding:3px 0;min-height:0}
+.ko-bmatch-inner{background:var(--sur);border:1px solid var(--brd);border-radius:var(--rsm);padding:.38rem .5rem;font-size:.76rem;display:flex;flex-direction:column;justify-content:center;gap:.18rem;width:100%;box-sizing:border-box}
 .ko-bmatch-inner:hover{border-color:var(--gm)}
 .ko-bcard-tbd{opacity:.4;text-align:center;font-size:.72rem;padding:.4rem}
-.ko-bteam{display:flex;align-items:center;gap:.3rem;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ko-bteam{display:flex;align-items:center;gap:.3rem;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ko-bteam.winner{color:var(--gd)}
-.ko-bscore{font-size:.7rem;font-weight:700;text-align:center;margin-top:.1rem}
+.ko-bscore{font-size:.7rem;font-weight:700;text-align:center;margin-top:.15rem}
 .ko-bscore.sw{color:var(--gm)}.ko-bscore.sd{color:#856404}.ko-bscore.sl{color:#e05252}
 
 /* Rules panel */
@@ -2708,7 +2708,10 @@ function renderKOZapasy() {
       const scoreLabel = g._fin
         ? `${g._hs}:${g._as}`
         : (g._ko ? formatKickoff(g._ko, g._stad) : '–');
-      const scoreClass = g._fin ? (Number(g._hs) > Number(g._as) ? 'sw' : Number(g._hs) < Number(g._as) ? 'sl' : 'sd') : 'st';
+      const myTipForClass = myName ? (_koPlayers || []).find(p => p.name === myName)?.predictions[String(g.id)] : null;
+      const scoreClass = !g._fin ? 'st'
+        : myTipForClass ? koScoreClass(myTipForClass, g)
+        : (Number(g._hs) > Number(g._as) ? 'sw' : Number(g._hs) < Number(g._as) ? 'sl' : 'sd');
 
       const { buckets, scoreCounts, n, exactNames } = computeKOMatchPoll(g);
       let body = '';
@@ -2823,7 +2826,6 @@ function renderKOBracket() {
     return `<div class="ko-bmatch-inner">
       <div class="ko-bteam ${hWin ? 'winner' : ''}">${teamFlag(g._home)} ${shortName(g._home)}</div>
       <div class="ko-bteam ${aWin ? 'winner' : ''}">${teamFlag(g._away)} ${shortName(g._away)}</div>
-      ${g._fin ? `<div class="ko-bscore ${hWin?'sw':aWin?'sl':'sd'}">${g._hs}:${g._as}</div>` : ''}
     </div>`;
   }
 
