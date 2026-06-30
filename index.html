@@ -74,29 +74,22 @@ a{color:inherit;text-decoration:none}
 .si{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap}
 
 /* ═══════════════════════════════════════════════════════
-   TAB NAVIGATION  – desktop: horizontal scroll bar
+   TAB NAVIGATION  – pill sub-tabs, same design as Playoff ko-subnav
 ═══════════════════════════════════════════════════════ */
 .tnav{
-  background:var(--sur);
-  border-bottom:2px solid var(--brd);
-  display:flex;overflow-x:auto;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
+  max-width:1040px;margin:0 auto;
+  display:flex;gap:4px;flex-wrap:wrap;
+  padding:.9rem 1rem .15rem;
 }
-.tnav::-webkit-scrollbar{display:none}
 .tbtn{
-  background:none;border:none;
-  border-bottom:3px solid transparent;margin-bottom:-2px;
-  padding:.8rem 1.25rem;
-  font-size:.88rem;font-weight:500;color:var(--mut);
+  background:var(--sur);border:1px solid var(--brd);border-radius:var(--rmd);
+  padding:.4rem .9rem;
+  font-size:.82rem;font-weight:600;color:var(--mut);
   cursor:pointer;white-space:nowrap;
-  transition:color .15s,border-color .15s;
-  display:flex;align-items:center;gap:.35rem;
-  /* touch-friendly minimum */
-  min-height:44px;
+  transition:background .15s,border-color .15s,color .15s;
 }
-.tbtn:hover{color:var(--gd)}
-.tbtn.active{color:var(--gd);border-bottom-color:var(--gd);background:var(--gl)}
+.tbtn:hover{border-color:var(--gm);color:var(--gd)}
+.tbtn.active{background:var(--gm);color:#fff;border-color:var(--gm)}
 
 /* ═══════════════════════════════════════════════════════
    TOP-LEVEL SECTION NAV (Základní skupina + vítěz / Playoff)
@@ -480,9 +473,6 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
   /* Status bar */
   .sbar{padding:.4rem .9rem;font-size:.76rem;gap:.3rem}
 
-  /* Tab nav – larger touch targets, equal-ish widths */
-  .tbtn{padding:.7rem .9rem;font-size:.82rem;min-height:48px}
-
   /* Layout */
   .wrap{padding:1rem .75rem}
 
@@ -516,33 +506,7 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
   .sec-nav{padding:.7rem .65rem .1rem;gap:.4rem}
   .sec-btn{font-size:.78rem;padding:.6rem .5rem;min-height:46px}
 
-  /* Tab nav – 2×2 grid on very small screens (5th tab spans full width) */
-  .tnav{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    overflow-x:visible;
-    border-bottom:none;
-    gap:1px;
-    background:var(--brd);
-  }
-  /* 6 tabs fit evenly in 2-column grid – no spanning needed */
-  .tbtn{
-    border-bottom:none;
-    border:none;
-    margin-bottom:0;
-    padding:.75rem .5rem;
-    font-size:.78rem;
-    min-height:52px;
-    justify-content:center;
-    background:var(--sur);
-  }
-  .tbtn.active{
-    background:var(--gl);
-    color:var(--gd);
-    font-weight:700;
-    /* accent bar on left instead of bottom */
-    border-left:3px solid var(--gd);
-  }
+  .tnav{padding:.7rem .65rem .1rem}
 
   /* Layout */
   .wrap{padding:.85rem .65rem}
@@ -743,11 +707,6 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 /* Rules panel */
 .ko-rules p{font-size:.88rem;line-height:1.6;margin:.4rem 0 .9rem}
 .ko-rules strong{font-weight:700}
-
-/* 7th tab spans full width on mobile grid */
-@media(max-width:480px){
-  .tbtn:nth-child(7){grid-column:1/-1}
-}
 
 /* ═══════════════════════════════════════════════════════
    REDUCED MOTION
