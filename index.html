@@ -192,10 +192,10 @@ a{color:inherit;text-decoration:none}
   -webkit-overflow-scrolling:touch;
 }
 
-#tipsTable{width:100%;border-collapse:collapse;font-size:.83rem;background:var(--sur)}
+:is(#tipsTable, #koTipsTable){width:100%;border-collapse:collapse;font-size:.83rem;background:var(--sur)}
 
 /* Sticky header row */
-#tipsTable thead th{
+:is(#tipsTable, #koTipsTable) thead th{
   position:sticky;top:0;z-index:100;
   background:var(--hdr);color:#fff;
   font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;
@@ -204,18 +204,18 @@ a{color:inherit;text-decoration:none}
 }
 
 /* Body cells */
-#tipsTable tbody td{
+:is(#tipsTable, #koTipsTable) tbody td{
   padding:.45rem .6rem;text-align:center;
   border-bottom:1px solid var(--brd);border-right:1px solid var(--brd);
   font-size:.82rem;
 }
-#tipsTable tbody tr:last-child td{border-bottom:none}
-#tipsTable tbody tr:hover td{filter:brightness(.96)}
+:is(#tipsTable, #koTipsTable) tbody tr:last-child td{border-bottom:none}
+:is(#tipsTable, #koTipsTable) tbody tr:hover td{filter:brightness(.96)}
 
 /* ── Sticky col 1 (Zápas) ──
    left:0, min-width driven by CSS variable so mobile can override */
-#tipsTable th:first-child,
-#tipsTable td:first-child{
+:is(#tipsTable, #koTipsTable) th:first-child,
+:is(#tipsTable, #koTipsTable) td:first-child{
   position:sticky;left:0;z-index:99;
   background:var(--sur);
   min-width:var(--col1-w);
@@ -224,8 +224,8 @@ a{color:inherit;text-decoration:none}
 
 /* ── Sticky col 2 (Výsledek/výkop) ──
    left = col1-w  */
-#tipsTable th:nth-child(2),
-#tipsTable td:nth-child(2){
+:is(#tipsTable, #koTipsTable) th:nth-child(2),
+:is(#tipsTable, #koTipsTable) td:nth-child(2){
   position:sticky;left:var(--col1-w);z-index:98;
   background:var(--sur);
   min-width:var(--col2-w);
@@ -233,8 +233,8 @@ a{color:inherit;text-decoration:none}
 }
 
 /* Corner header cells – highest z-index, dark bg */
-#tipsTable thead th:first-child{z-index:102;background:var(--hdr)}
-#tipsTable thead th:nth-child(2){z-index:101;background:var(--hdr);box-shadow:2px 0 5px rgba(0,0,0,.15)}
+:is(#tipsTable, #koTipsTable) thead th:first-child{z-index:102;background:var(--hdr)}
+:is(#tipsTable, #koTipsTable) thead th:nth-child(2){z-index:101;background:var(--hdr);box-shadow:2px 0 5px rgba(0,0,0,.15)}
 
 /* Cell colours */
 .ce{background:#d4edda!important;color:#155724;font-weight:600}
@@ -849,12 +849,33 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
     <nav class="ko-subnav" id="koSubnav">
       <button class="ko-subbtn active" data-kosub="zapasy">📋 Zápasy</button>
       <button class="ko-subbtn" data-kosub="poradi">🏆 Aktuální pořadí</button>
+      <button class="ko-subbtn" data-kosub="tipy">📝 Tipy hráčů</button>
       <button class="ko-subbtn" data-kosub="pavouk">🕸️ Pavouk</button>
       <button class="ko-subbtn" data-kosub="statistiky">📊 Statistiky</button>
       <button class="ko-subbtn" data-kosub="pravidla">📜 Pravidla</button>
     </nav>
     <div id="ko-panel-zapasy"></div>
     <div id="ko-panel-poradi" style="display:none"></div>
+    <div id="ko-panel-tipy" style="display:none">
+      <div class="wrap">
+        <p class="stitle">📝 Tipy hráčů – Playoff</p>
+        <div class="tc">
+          <label for="koSel1">Hráč 1:</label>
+          <select id="koSel1"></select>
+          <label for="koSel2">Hráč 2:</label>
+          <select id="koSel2"></select>
+          <button class="btn"  id="koBtnCompare">Zobrazit</button>
+          <button class="btn btn2" id="koBtnAll">Zobrazit všechny</button>
+        </div>
+        <div id="koH2h"></div>
+        <div class="tsw">
+          <table id="koTipsTable">
+            <thead><tr id="koTipsHdr"></tr></thead>
+            <tbody id="koTipsBdy"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     <div id="ko-panel-pavouk" style="display:none"></div>
     <div id="ko-panel-statistiky" style="display:none"></div>
     <div id="ko-panel-pravidla" style="display:none"></div>
@@ -1281,9 +1302,9 @@ function renderLeaderboard(board) {
 }
 
 /* ── Render: Tips table ──────────────────────────────── */
-function buildTipsTable(games, showPlayers) {
-  const hdr = document.getElementById('tipsHdr');
-  const bdy = document.getElementById('tipsBdy');
+function buildTipsTable(games, showPlayers, hdrId, bdyId) {
+  const hdr = document.getElementById(hdrId || 'tipsHdr');
+  const bdy = document.getElementById(bdyId || 'tipsBdy');
   hdr.innerHTML = bdy.innerHTML = '';
 
   // Sort by actual kickoff time before rendering
@@ -1338,6 +1359,19 @@ function renderComparison(n1, n2) {
   const p2 = n2 ? players.find(p => p.name === n2) : null;
   buildTipsTable(gamesCache.filter(g => g.type === 'group'), p2 ? [p1, p2] : [p1]);
   renderH2H(p1, p2);
+}
+
+function renderKOAllTips() {
+  if (!_koPlayers || !_koPlayers.length) return;
+  buildTipsTable(getKOGames(), _koPlayers, 'koTipsHdr', 'koTipsBdy');
+  const h2hEl = document.getElementById('koH2h'); if (h2hEl) h2hEl.innerHTML = '';
+}
+function renderKOComparison(n1, n2) {
+  if (!_koPlayers) return;
+  const p1 = _koPlayers.find(p => p.name === n1); if (!p1) return;
+  const p2 = n2 ? _koPlayers.find(p => p.name === n2) : null;
+  buildTipsTable(getKOGames(), p2 ? [p1, p2] : [p1], 'koTipsHdr', 'koTipsBdy');
+  renderKOH2H(p1, p2);
 }
 
 /* ── Render: Champion grid ───────────────────────────── */
@@ -2065,6 +2099,42 @@ function renderH2H(p1, p2) {
   </div>`;
 }
 
+/* ── Hlava na hlavu: head-to-head summary for two compared KO players ── */
+function renderKOH2H(p1, p2) {
+  const el = document.getElementById('koH2h');
+  if (!el) return;
+  if (!p2) { el.innerHTML = ''; return; }
+  const finished = getKOGames().filter(g => g._fin && g._hs != null && g._as != null);
+  if (!finished.length) { el.innerHTML = ''; return; }
+
+  const pointsFor = (p, g) => {
+    const pred = (p.predictions || {})[String(g.id)]; if (!pred) return 0;
+    const round = KO_ROUNDS.find(r => r.id === g.type); if (!round) return 0;
+    let v = 0;
+    if (outcome(pred.home, pred.away) === outcome(g._hs, g._as)) v += round.correct;
+    if (pred.home === g._hs && pred.away === g._as)               v += round.bonus;
+    return v;
+  };
+
+  let w1 = 0, w2 = 0, tie = 0;
+  finished.forEach(g => {
+    const v1 = pointsFor(p1, g), v2 = pointsFor(p2, g);
+    if (v1 > v2) w1++; else if (v2 > v1) w2++; else tie++;
+  });
+  const total = finished.length;
+  const pct1  = w1 / total * 100, pct2 = w2 / total * 100, pctT = 100 - pct1 - pct2;
+
+  el.innerHTML = `<div class="h2h">
+    <div class="h2h-title">⚔️ ${p1.name} vs ${p2.name} – z ${total} odehraných zápasů</div>
+    <div>${p1.name} lepší tip: <strong>${w1}×</strong> · shoda: <strong>${tie}×</strong> · ${p2.name} lepší tip: <strong>${w2}×</strong></div>
+    <div class="h2h-bar">
+      <div class="h2h-seg" style="flex:${pct1 || 0.0001};background:#1a7a42"></div>
+      <div class="h2h-seg" style="flex:${pctT || 0.0001};background:#e0e6e2"></div>
+      <div class="h2h-seg" style="flex:${pct2 || 0.0001};background:#3a7bd5"></div>
+    </div>
+  </div>`;
+}
+
 /* ── Data loading ────────────────────────────────────── */
 async function loadPlayers() {
   const resp = await fetch('players_predictions.json');
@@ -2236,6 +2306,16 @@ function populateSelects() {
   });
 }
 
+function populateKOSelects() {
+  if (!_koPlayers || !_koPlayers.length) return;
+  ['koSel1','koSel2'].forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
+    s.innerHTML = '<option value="">Vyberte hráče…</option>';
+    _koPlayers.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p.name; s.appendChild(o); });
+  });
+}
+
 /* ── Live API overlay ────────────────────────────────────────
    Merguje data ze živého API do gamesCache POUZE V PAMĚTI – games.json
    se z prohlížeče nikdy nepřepíše (o jeho aktuálnost se stará scheduled
@@ -2307,6 +2387,12 @@ document.getElementById('btnCompare').addEventListener('click', () => {
   if (n1) renderComparison(n1, n2 || null);
 });
 document.getElementById('btnAll').addEventListener('click', renderAllTips);
+document.getElementById('koBtnCompare').addEventListener('click', () => {
+  const n1 = document.getElementById('koSel1').value;
+  const n2 = document.getElementById('koSel2').value;
+  if (n1) renderKOComparison(n1, n2 || null);
+});
+document.getElementById('koBtnAll').addEventListener('click', renderKOAllTips);
 document.getElementById('teamsFilter').addEventListener('input', () => renderTeams());
 
 /* ── Theme (dark / light / auto) ────────────────────── */
@@ -2993,11 +3079,12 @@ document.getElementById('koSubnav').addEventListener('click', e => {
   const sub = btn.dataset.kosub;
   document.querySelectorAll('.ko-subbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['zapasy','poradi','pavouk','statistiky','pravidla'].forEach(id => {
+  ['zapasy','poradi','tipy','pavouk','statistiky','pravidla'].forEach(id => {
     document.getElementById('ko-panel-' + id).style.display = id === sub ? '' : 'none';
   });
   if (sub === 'poradi') renderKOLeaderboard();
   else if (sub === 'zapasy') renderKOZapasy();
+  else if (sub === 'tipy') renderKOAllTips();
   else if (sub === 'pavouk') renderKOBracket();
   else if (sub === 'statistiky') renderKOStats();
   else if (sub === 'pravidla') renderKORules();
@@ -3083,6 +3170,8 @@ function renderKORules() {
 async function initKO() {
   await loadKOPlayers();
   renderKOZapasy();
+  populateKOSelects();
+  renderKOAllTips();
 }
 
 /* ── Init ────────────────────────────────────────────── */
