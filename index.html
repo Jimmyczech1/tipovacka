@@ -99,6 +99,26 @@ a{color:inherit;text-decoration:none}
 .tbtn.active{color:var(--gd);border-bottom-color:var(--gd);background:var(--gl)}
 
 /* ═══════════════════════════════════════════════════════
+   TOP-LEVEL SECTION NAV (Základní skupina + vítěz / Playoff)
+═══════════════════════════════════════════════════════ */
+.sec-nav{
+  max-width:1040px;margin:0 auto;
+  display:flex;gap:.6rem;
+  padding:.9rem 1rem .15rem;
+}
+.sec-btn{
+  flex:1;
+  background:var(--sur);border:2px solid var(--brd);border-radius:var(--rmd);
+  padding:.75rem 1rem;
+  font-size:.92rem;font-weight:700;color:var(--mut);
+  cursor:pointer;transition:background .15s,border-color .15s,color .15s;
+  display:flex;align-items:center;justify-content:center;gap:.45rem;
+  min-height:50px;
+}
+.sec-btn:hover{border-color:var(--gm);color:var(--gd)}
+.sec-btn.active{background:var(--gm);border-color:var(--gm);color:#fff}
+
+/* ═══════════════════════════════════════════════════════
    LAYOUT
 ═══════════════════════════════════════════════════════ */
 .wrap{max-width:1040px;margin:0 auto;padding:1.4rem 1rem}
@@ -492,6 +512,10 @@ footer{text-align:center;font-size:.76rem;color:var(--mut);padding:1.25rem 1rem;
   /* Status bar */
   .sbar{flex-direction:column;align-items:flex-start;padding:.4rem .8rem;gap:.2rem;font-size:.73rem}
 
+  /* Section nav – stack on very small screens */
+  .sec-nav{padding:.7rem .65rem .1rem;gap:.4rem}
+  .sec-btn{font-size:.78rem;padding:.6rem .5rem;min-height:46px}
+
   /* Tab nav – 2×2 grid on very small screens (5th tab spans full width) */
   .tnav{
     display:grid;
@@ -753,14 +777,20 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
   <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select></div>
 </div>
 
+<nav class="sec-nav" role="tablist">
+  <button class="sec-btn active" data-sec="skupina" role="tab" aria-selected="true">🏟️ Základní skupina + vítěz</button>
+  <button class="sec-btn"        data-sec="playoff" role="tab" aria-selected="false">🏆 Playoff</button>
+</nav>
+
+<div class="section-content" id="section-skupina">
 <nav class="tnav" role="tablist">
-  <button class="tbtn active" data-tab="prehled"    role="tab" aria-selected="true">🏠 Přehled</button>
-  <button class="tbtn"        data-tab="poradi"     role="tab">🏆 Aktuální pořadí</button>
-  <button class="tbtn"        data-tab="tipy"       role="tab">📋 Tipy hráčů</button>
-  <button class="tbtn"        data-tab="vitez"      role="tab">🌍 Vítěz MS</button>
-  <button class="tbtn"        data-tab="statistiky" role="tab">📊 Statistiky</button>
-  <button class="tbtn"        data-tab="zeme"       role="tab">🗺️ Země</button>
-  <button class="tbtn"        data-tab="playoff"    role="tab">🏆 Playoff</button>
+  <button class="tbtn active" data-tab="prehled"         role="tab" aria-selected="true">🏠 Přehled</button>
+  <button class="tbtn"        data-tab="poradi"          role="tab">🏆 Aktuální pořadí</button>
+  <button class="tbtn"        data-tab="tipy"            role="tab">📋 Tipy hráčů</button>
+  <button class="tbtn"        data-tab="vitez"           role="tab">🌍 Vítěz MS</button>
+  <button class="tbtn"        data-tab="statistiky"      role="tab">📊 Statistiky</button>
+  <button class="tbtn"        data-tab="zeme"            role="tab">🗺️ Země</button>
+  <button class="tbtn"        data-tab="pravidla-skupina" role="tab">📜 Pravidla</button>
 </nav>
 
 <main>
@@ -829,22 +859,49 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
     </div>
   </section>
 
-  <section class="tpanel" id="panel-playoff" role="tabpanel">
+  <section class="tpanel" id="panel-pravidla-skupina" role="tabpanel">
     <div class="wrap">
-      <p class="stitle">🏆 Playoff</p>
-      <nav class="ko-subnav" id="koSubnav">
-        <button class="ko-subbtn active" data-kosub="poradi">🏆 Pořadí</button>
-        <button class="ko-subbtn" data-kosub="zapasy">📋 Zápasy</button>
-        <button class="ko-subbtn" data-kosub="pavouk">🕸️ Pavouk</button>
-        <button class="ko-subbtn" data-kosub="pravidla">📜 Pravidla</button>
-      </nav>
-      <div id="ko-panel-poradi"></div>
-      <div id="ko-panel-zapasy" style="display:none"></div>
-      <div id="ko-panel-pavouk" style="display:none"></div>
-      <div id="ko-panel-pravidla" style="display:none"></div>
+      <p class="stitle">📜 Pravidla základní skupiny</p>
+      <div class="ko-rules">
+        <p class="stitle" style="margin-top:.25rem">Bodování</p>
+        <p>Za každý zápas základní skupiny tipuješ přesný výsledek (počet gólů domácích a hostů).</p>
+        <div class="tbl-wrap"><table class="ko-lbt" style="margin-bottom:.75rem">
+          <thead><tr>
+            <th>Za co</th>
+            <th style="text-align:right">Body</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Správně tipnutý výsledek (výhra domácích / remíza / výhra hostů)</td><td style="text-align:right"><strong>1 bod</strong></td></tr>
+            <tr><td>Navíc za přesné skóre</td><td style="text-align:right"><strong>+2 body</strong></td></tr>
+            <tr><td>Správně tipnutý celkový vítěz MS</td><td style="text-align:right"><strong>+10 bodů</strong></td></tr>
+          </tbody>
+        </table></div>
+        <p>Příklad: pokud tipneš 2:1 a skutečný výsledek je 2:1, získáváš <strong>1 + 2 = 3 body</strong>. Pokud tipneš správný výsledek (např. výhru domácích), ale jiné skóre, získáváš <strong>1 bod</strong>. Pokud netrefíš ani výsledek, body za daný zápas nezískáváš.</p>
+        <p>Tip na <strong>celkového vítěze MS</strong> se zadává jednou na začátku turnaje a body se připíšou až po dohrání finále.</p>
+      </div>
     </div>
   </section>
 </main>
+</div>
+
+<div class="section-content" id="section-playoff" style="display:none">
+<main>
+  <div class="wrap">
+    <nav class="ko-subnav" id="koSubnav">
+      <button class="ko-subbtn active" data-kosub="zapasy">📋 Zápasy</button>
+      <button class="ko-subbtn" data-kosub="poradi">🏆 Aktuální pořadí</button>
+      <button class="ko-subbtn" data-kosub="pavouk">🕸️ Pavouk</button>
+      <button class="ko-subbtn" data-kosub="statistiky">📊 Statistiky</button>
+      <button class="ko-subbtn" data-kosub="pravidla">📜 Pravidla</button>
+    </nav>
+    <div id="ko-panel-zapasy"></div>
+    <div id="ko-panel-poradi" style="display:none"></div>
+    <div id="ko-panel-pavouk" style="display:none"></div>
+    <div id="ko-panel-statistiky" style="display:none"></div>
+    <div id="ko-panel-pravidla" style="display:none"></div>
+  </div>
+</main>
+</div>
 
 <footer>
   Primární zdroj dat: <code>games.json</code> · Live API: <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a>
@@ -882,6 +939,18 @@ let nmUserNavigated = false; // becomes true once the user manually changes the 
 
 let fallbackUpdateLabel = null; // { ts, source } from games.json – shown if live API fails
 let cachedLiveTs = null;        // ISO timestamp of a live snapshot (fresh or from localStorage)
+
+/* ── Top-level section navigation (Základní skupina / Playoff) ── */
+document.querySelectorAll('.sec-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sec-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected','true');
+    const sec = btn.dataset.sec;
+    document.getElementById('section-skupina').style.display = sec === 'skupina' ? '' : 'none';
+    document.getElementById('section-playoff').style.display = sec === 'playoff' ? '' : 'none';
+  });
+});
 
 /* ── Tab navigation ──────────────────────────────────── */
 document.querySelectorAll('.tbtn').forEach(btn => {
@@ -2856,6 +2925,108 @@ function renderKOBracket() {
   el.innerHTML = html;
 }
 
+function renderKOStats() {
+  const el = document.getElementById('ko-panel-statistiky');
+  const sorted = sortByKickoff(getKOGames().filter(g => g._fin && g._hs != null));
+  if (!_koPlayers || !_koPlayers.length || sorted.length === 0) {
+    el.innerHTML = '<p class="emsg">⏳ Statistiky se naplní po odehrání prvních zápasů play off.</p>';
+    return;
+  }
+
+  const ps = _koPlayers.map(p => {
+    const total   = sorted.filter(g => p.predictions[String(g.id)]).length;
+    const correct = sorted.filter(g => { const pr = p.predictions[String(g.id)]; return pr && outcome(pr.home, pr.away) === outcome(g._hs, g._as); }).length;
+    const exact   = sorted.filter(g => { const pr = p.predictions[String(g.id)]; return pr && pr.home === g._hs && pr.away === g._as; }).length;
+    const smolar  = sorted.filter(g => {
+      const pr = p.predictions[String(g.id)];
+      if (!pr) return false;
+      return !(pr.home === g._hs && pr.away === g._as) &&
+             Math.abs(pr.home - g._hs) + Math.abs(pr.away - g._as) === 1;
+    }).length;
+    const boldGoals = sorted.reduce((sum, g) => {
+      const pr = p.predictions[String(g.id)];
+      return sum + (pr ? Number(pr.home) + Number(pr.away) : 0);
+    }, 0);
+    return { name: p.name,
+             strk:  streak(p.predictions, sorted, 'correct'),
+             estrk: streak(p.predictions, sorted, 'exact'),
+             total, correct, exact, smolar, boldGoals,
+             pct: total > 0 ? Math.round(correct / total * 100) : 0 };
+  });
+
+  function tiedNames(key) {
+    const { best, players: tied } = topTied(ps, key);
+    const label = tied.length > 1 ? tied.map(p => p.name).join(', ') : tied[0].name;
+    return { best, label, count: tied.length };
+  }
+
+  const tStrk  = tiedNames('strk');
+  const tEstrk = tiedNames('estrk');
+  const tExact = tiedNames('exact');
+  const tPct   = tiedNames('pct');
+  const pctTied = topTied(ps, 'pct').players;
+  const pctSub = pctTied.length === 1
+    ? `${pctTied[0].name} (${pctTied[0].correct}/${pctTied[0].total})`
+    : pctTied.map(p => `${p.name} (${p.correct}/${p.total})`).join(', ');
+
+  const medals = ['🥇', '🥈', '🥉'];
+
+  const smolarPlaces = podiumPlaces(ps, 'smolar');
+  const smolarCard = smolarPlaces.length > 0 ? `
+    <div class="sc">
+      <div class="scl">😬 Největší smolaři</div>
+      <div class="sc-podium">${smolarPlaces.map((p, i) =>
+        `<div class="sc-row">${medals[i]} <strong>${p.value}×</strong> ${p.names.join(', ')}</div>`
+      ).join('')}</div>
+    </div>` : '';
+
+  const boldPlaces = podiumPlaces(ps, 'boldGoals');
+  const boldCard = boldPlaces.length > 0 ? `
+    <div class="sc">
+      <div class="scl">💥 Nejodvážnější tipéři</div>
+      <div class="sc-podium">${boldPlaces.map((pl, i) =>
+        `<div class="sc-row">${medals[i]} <strong>${pl.value} gólů</strong> · ${pl.names.map(n => {
+          const pp = ps.find(x => x.name === n);
+          const avg = pp && pp.total > 0 ? (pp.boldGoals / pp.total).toFixed(1) : '0.0';
+          return `${n} (Ø ${avg} g/zápas)`;
+        }).join(', ')}</div>`
+      ).join('')}</div>
+    </div>` : '';
+
+  const cards = `<div class="sgrid">
+    <div class="sc"><div class="scl">🔥 Nejdelší série správných</div><div class="scv">${tStrk.best}</div><div class="scs">${tStrk.label}</div></div>
+    <div class="sc"><div class="scl">⚡ Nejdelší série přesných</div><div class="scv">${tEstrk.best}</div><div class="scs">${tEstrk.label}</div></div>
+    <div class="sc"><div class="scl">🎯 Nejvíce přesných skóre</div><div class="scv">${tExact.best}</div><div class="scs">${tExact.label}</div></div>
+    <div class="sc"><div class="scl">📈 Nejlepší úspěšnost</div><div class="scv">${tPct.best}%</div><div class="scs">${pctSub}</div></div>
+    ${smolarCard}
+    ${boldCard}
+  </div>`;
+
+  const psRanked = (() => {
+    const s = [...ps].sort((a,b) => b.pct - a.pct || b.exact - a.exact);
+    return s.map((p, i, arr) => {
+      const rank = i === 0 ? 1 : (arr[i-1].pct === p.pct && arr[i-1].exact === p.exact ? arr[i-1]._rank : i + 1);
+      return { ...p, _rank: rank };
+    });
+  })();
+
+  const rows = psRanked.map(p => `<tr>
+    <td>${p.name}</td><td>${p.exact}</td><td>${p.correct}/${p.total}</td>
+    <td><div class="pbar"><div class="ptrk"><div class="pfil" style="width:${p.pct}%"></div></div><span>${p.pct}%</span></div></td>
+    <td>${p.strk}</td>
+  </tr>`).join('');
+
+  el.innerHTML = cards + `<div class="stw">
+    <div class="stt">Detailní přehled hráčů</div>
+    <div class="stw-inner">
+    <table class="stb">
+      <thead><tr><th>Hráč</th><th>🎯 Přesná skóre</th><th>✓ Správné výsledky</th><th>📈 Úspěšnost</th><th>🔥 Max. série</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
 // Sub-navigation inside Playoff tab
 document.getElementById('koSubnav').addEventListener('click', e => {
   const btn = e.target.closest('.ko-subbtn');
@@ -2863,12 +3034,13 @@ document.getElementById('koSubnav').addEventListener('click', e => {
   const sub = btn.dataset.kosub;
   document.querySelectorAll('.ko-subbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['poradi','zapasy','pavouk','pravidla'].forEach(id => {
+  ['zapasy','poradi','pavouk','statistiky','pravidla'].forEach(id => {
     document.getElementById('ko-panel-' + id).style.display = id === sub ? '' : 'none';
   });
   if (sub === 'poradi') renderKOLeaderboard();
   else if (sub === 'zapasy') renderKOZapasy();
   else if (sub === 'pavouk') renderKOBracket();
+  else if (sub === 'statistiky') renderKOStats();
   else if (sub === 'pravidla') renderKORules();
 });
 
@@ -2951,7 +3123,7 @@ function renderKORules() {
 
 async function initKO() {
   await loadKOPlayers();
-  renderKOLeaderboard();
+  renderKOZapasy();
 }
 
 /* ── Init ────────────────────────────────────────────── */
