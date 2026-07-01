@@ -681,7 +681,7 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 .ko-detail-row:last-child{border-bottom:none}
 .ko-detail-match{flex:1;color:var(--mut);font-size:.79rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ko-detail-tip{font-weight:600;white-space:nowrap;min-width:3.5rem;text-align:center}
-.ko-detail-tip.ex{color:#f4b942}.ko-detail-tip.co{color:var(--gm)}.ko-detail-tip.wr{color:#e05252}
+.ko-detail-tip.ex{color:var(--gm)}.ko-detail-tip.co{color:#f4b942}.ko-detail-tip.wr{color:#e05252}
 .ko-detail-pts{font-weight:700;color:var(--gd);min-width:2.2rem;text-align:right;font-size:.78rem;flex-shrink:0}
 .ko-detail-exact{margin-top:.6rem;font-size:.85rem;font-weight:700;text-align:right;color:var(--txt)}
 /* Pravidla table scroll on mobile */
@@ -731,7 +731,7 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 </header>
 
 <div class="sbar">
-  <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
+  <div class="si">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesGroupPlayed">0</span>/<span id="gamesGroupTotal">72</span>&nbsp;skupinových &nbsp;·&nbsp; <span id="gamesKOPlayed">0</span>/<span id="gamesKOTotal">0</span>&nbsp;play&nbsp;off</div>
   <div class="si">🕐 <span id="updateLabel">Poslední aktualizace:</span>&nbsp;<span id="lastUpdated">–</span>&nbsp;<span id="updateBadge"></span></div>
   <div class="si">👤 Jsem:&nbsp;<select id="playerSel"><option value="">– vybrat –</option></select></div>
 </div>
@@ -745,7 +745,7 @@ html.dark .ko-score.st{background:var(--bg);color:var(--mut)}
 <nav class="tnav" role="tablist">
   <button class="tbtn active" data-tab="prehled"         role="tab" aria-selected="true">🏠 Přehled</button>
   <button class="tbtn"        data-tab="poradi"          role="tab">🏆 Aktuální pořadí</button>
-  <button class="tbtn"        data-tab="tipy"            role="tab">📋 Tipy hráčů</button>
+  <button class="tbtn"        data-tab="tipy"            role="tab">📝 Tipy hráčů</button>
   <button class="tbtn"        data-tab="vitez"           role="tab">🌍 Vítěz MS</button>
   <button class="tbtn"        data-tab="statistiky"      role="tab">📊 Statistiky</button>
   <button class="tbtn"        data-tab="zeme"            role="tab">🗺️ Země</button>
@@ -2268,10 +2268,13 @@ function renderTeams(filterVal) {
 }
 
 function renderAll() {
-  const fin   = gamesCache.filter(g => isFin(g));
-  const total = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
-  document.getElementById('gamesPlayed').textContent = fin.length;
-  document.getElementById('gamesTotal').textContent  = total;
+  const fin        = gamesCache.filter(g => isFin(g));
+  const groupGames = gamesCache.filter(g => g.type === 'group');
+  const koGames    = getKOGames();
+  document.getElementById('gamesGroupPlayed').textContent = groupGames.filter(g => isFin(g)).length;
+  document.getElementById('gamesGroupTotal').textContent  = groupGames.length || 72;
+  document.getElementById('gamesKOPlayed').textContent    = koGames.filter(g => isFin(g)).length;
+  document.getElementById('gamesKOTotal').textContent     = koGames.length;
   calculateScores(fin);
   renderChampionGrid();
   renderAllTips();
@@ -2727,7 +2730,7 @@ function renderKOLeaderboard() {
 
   const last5 = finGames.slice(-5);
 
-  const hint = `<p class="form-hint">🟩 přesný tip · 🟨 správný výsledek · 🟥 mimo &nbsp;·&nbsp; klikni na hráče pro detaily</p>`;
+  const hint = `<p class="form-hint"><span class="fdot ex" style="display:inline-flex">★</span> přesný tip · <span class="fdot co" style="display:inline-flex">✓</span> správný výsledek · <span class="fdot wr" style="display:inline-flex">✕</span> mimo &nbsp;·&nbsp; klikni na hráče pro detaily</p>`;
 
   const rowsHtml = rows.map(r => {
     const p = r.player;
