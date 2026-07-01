@@ -1581,8 +1581,12 @@ function renderStats(board, finished) {
   const boldCard = boldPlaces.length > 0 ? `
     <div class="sc">
       <div class="scl">💥 Nejodvážnější tipéři</div>
-      <div class="sc-podium">${boldPlaces.map((p, i) =>
-        `<div class="sc-row">${medals[i]} <strong>${p.value} gólů</strong> · ${p.names.join(', ')}</div>`
+      <div class="sc-podium">${boldPlaces.map((pl, i) =>
+        `<div class="sc-row">${medals[i]} <strong>${pl.value} gólů</strong> · ${pl.names.map(n => {
+          const pp = ps.find(x => x.name === n);
+          const avg = pp && pp.total > 0 ? (pp.boldGoals / pp.total).toFixed(1) : '0.0';
+          return `${n} (Ø ${avg} g/zápas)`;
+        }).join(', ')}</div>`
       ).join('')}</div>
     </div>` : '';
 
@@ -1940,7 +1944,7 @@ function renderFormGuide() {
     return '<span class="form-arrow fa-eq" title="Beze změny">–</span>';
   };
 
-  const hint = `<p class="form-hint">Posledních ${last.length} odehraných ${last.length === 1 ? 'zápas' : 'zápasy'} – 🟩 přesný tip · 🟨 správný výsledek · 🟥 mimo</p>`;
+  const hint = `<p class="form-hint">Posledních ${last.length} odehraných ${last.length === 1 ? 'zápas' : 'zápasy'} – <span class="fdot ex" style="display:inline-flex">★</span> přesný tip · <span class="fdot co" style="display:inline-flex">✓</span> správný výsledek · <span class="fdot wr" style="display:inline-flex">✕</span> mimo</p>`;
 
   const rows = board.map(p => {
     const pred = players.find(pl => pl.name === p.name).predictions;
