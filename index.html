@@ -2331,12 +2331,14 @@ function populateKOSelects() {
 function mergeLiveGames(raw) {
   const apiGames = raw.map(normalizeGame);
 
-  // Merge: manuálně odehrané zápasy mají vždy přednost před API
+  // Merge: lokální zápas s výsledkem má vždy přednost před API
+  // (chrání před ID neshodou nebo nesprávným skóre ze zdrojového API,
+  //  např. skóre po prodloužení místo výsledku po 90 minutách)
   const localById = {};
   gamesCache.forEach(g => { localById[g.id] = g; });
   gamesCache = apiGames.map(ag => {
     const local = localById[ag.id];
-    if (local && local._fin && !ag._fin) return local;
+    if (local && local._fin) return local;
     return ag;
   });
 }
