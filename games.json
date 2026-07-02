@@ -969,9 +969,9 @@
       "awayTeam": "Bosnia and Herzegovina",
       "kickoff": "2026-07-01 17:00",
       "stadiumId": "15",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 0
     },
     {
       "id": "82",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-07-01 20:23",
+  "lastUpdate": "2026-07-02 12:15",
   "updateSource": "auto"
 }
