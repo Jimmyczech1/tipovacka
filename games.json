@@ -1113,9 +1113,9 @@
       "awayTeam": "Spain",
       "kickoff": "2026-07-06 14:00",
       "stadiumId": "4",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 1
     },
     {
       "id": "94",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-07-06 15:00",
+  "lastUpdate": "2026-07-07 01:40",
   "updateSource": "auto"
 }
