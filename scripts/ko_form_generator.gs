@@ -48,20 +48,14 @@ const PLAYERS = [
 
 // ── Zápasy daného kola ────────────────────────────────────────
 // Uprav před každým kolem. id = číslo zápasu z games.json.
-const ROUND_NAME = "Osmifinále"; // "Osmifinále" / "Čtvrtfinále" / atd.
+const ROUND_NAME = "Čtvrtfinále"; // "Osmifinále" / "Čtvrtfinále" / atd.
 const GAMES = [
-  // ID ověřena z games.json + live API (4.7.2026)
-  // POZOR: games.json má prohozená ID 80 (Belgium) a 82 (England) oproti API –
-  // R16 zápasy jsou ale správně: hra 92 = Mexico vs England, hra 94 = USA vs Belgium
-  { id: 90, home: "Canada",         away: "Morocco" },        //  4.7. 19:00 CZ
-  { id: 89, home: "Paraguay",       away: "France" },         //  4.7. 23:00 CZ
-  { id: 91, home: "Brazil",         away: "Norway" },         //  5.7. 22:00 CZ
-  { id: 92, home: "Mexico",         away: "England" },        //  6.7. 02:00 CZ
-  { id: 93, home: "Portugal",       away: "Spain" },          //  6.7. 21:00 CZ
-  { id: 94, home: "United States",  away: "Belgium" },        //  7.7. 02:00 CZ
-  { id: 95, home: "Argentina",      away: "Egypt" },          //  7.7. 18:00 CZ
-  { id: 96, home: "Switzerland",    away: "Colombia" },       //  7.7. 22:00 CZ
-  // Pro čtvrtfinále použij id: 97–100, atd.
+  // ID ověřena z games.json + live API (8.7.2026)
+  { id: 97,  home: "France",     away: "Morocco"      },  //  9.7. 22:00 CZ
+  { id: 98,  home: "Spain",      away: "Belgium"      },  // 10.7. 21:00 CZ
+  { id: 99,  home: "Norway",     away: "England"      },  // 11.7. 23:00 CZ
+  { id: 100, home: "Argentina",  away: "Switzerland"  },  // 12.7. 03:00 CZ
+  // Pro semifinále použij id: 101–102, atd.
 ];
 
 // ════════════════════════════════════════════════════════════════
