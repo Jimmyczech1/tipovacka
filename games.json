@@ -1161,9 +1161,9 @@
       "awayTeam": "Morocco",
       "kickoff": "2026-07-09 16:00",
       "stadiumId": "9",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 0
     },
     {
       "id": "98",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-07-08 09:42",
+  "lastUpdate": "2026-07-10 01:21",
   "updateSource": "auto"
 }
