@@ -1185,9 +1185,9 @@
       "awayTeam": "England",
       "kickoff": "2026-07-11 17:00",
       "stadiumId": "8",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 2
     },
     {
       "id": "100",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-07-10 23:08",
+  "lastUpdate": "2026-07-12 01:58",
   "updateSource": "auto"
 }
