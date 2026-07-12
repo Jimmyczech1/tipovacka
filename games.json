@@ -1197,9 +1197,9 @@
       "awayTeam": "Switzerland",
       "kickoff": "2026-07-11 20:00",
       "stadiumId": "6",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
       "id": "101",
