@@ -1209,9 +1209,9 @@
       "awayTeam": "Winner Match 98",
       "kickoff": "2026-07-14 14:00",
       "stadiumId": "4",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 0,
+      "awayScore": 2
     },
     {
       "id": "102",
@@ -1250,6 +1250,6 @@
       "awayScore": null
     }
   ],
-  "lastUpdate": "2026-07-12 08:21",
+  "lastUpdate": "2026-07-14 23:41",
   "updateSource": "auto"
 }
