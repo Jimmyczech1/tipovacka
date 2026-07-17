@@ -48,14 +48,11 @@ const PLAYERS = [
 
 // ── Zápasy daného kola ────────────────────────────────────────
 // Uprav před každým kolem. id = číslo zápasu z games.json.
-const ROUND_NAME = "Čtvrtfinále"; // "Osmifinále" / "Čtvrtfinále" / atd.
+const ROUND_NAME = "Finále a o 3. místo"; // "Osmifinále" / "Čtvrtfinále" / atd.
 const GAMES = [
-  // ID ověřena z games.json + live API (8.7.2026)
-  { id: 97,  home: "France",     away: "Morocco"      },  //  9.7. 22:00 CZ
-  { id: 98,  home: "Spain",      away: "Belgium"      },  // 10.7. 21:00 CZ
-  { id: 99,  home: "Norway",     away: "England"      },  // 11.7. 23:00 CZ
-  { id: 100, home: "Argentina",  away: "Switzerland"  },  // 12.7. 03:00 CZ
-  // Pro semifinále použij id: 101–102, atd.
+  // ID ověřena z games.json + live API (14.7.2026)
+  { id: 103, home: "France",  away: "England"    },  // O 3. místo — 18.7. 23:00 CZ
+  { id: 104, home: "Spain",   away: "Argentina"  },  // Finále     — 19.7. 21:00 CZ
 ];
 
 // ════════════════════════════════════════════════════════════════
