@@ -1245,11 +1245,11 @@
       "awayTeam": "Argentina",
       "kickoff": "2026-07-19 15:00",
       "stadiumId": "11",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 0
     }
   ],
-  "lastUpdate": "2026-07-19 01:29",
+  "lastUpdate": "2026-07-20 00:35",
   "updateSource": "auto"
 }
